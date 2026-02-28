@@ -14,7 +14,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReservationStatusController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('hotels.index'))->name('home');
+Route::get('/', App\Http\Controllers\WelcomeController::class)->name('home');
 
 Route::get('/hotels', [HotelController::class, 'index'])->name('hotels.index');
 Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Avis;
+use App\Models\Chambre;
 use App\Models\Hotel;
 use App\Models\Reservation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,20 +16,145 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         $user = $request->user();
+        $today = Carbon::today();
 
-        $hotels = $user->role === 'SUPER_ADMIN'
-            ? Hotel::withCount(['typesChambre', 'avis'])->get()
-            : Hotel::where('user_id', $user->id)->withCount(['typesChambre', 'avis'])->get();
-
-        $reservationsQuery = Reservation::query();
+        $reservationsQuery = Reservation::query()->with('chambre.typeChambre.hotel');
         if ($user->role !== 'SUPER_ADMIN') {
             $reservationsQuery->whereHas('chambre.typeChambre.hotel', fn ($q) => $q->where('user_id', $user->id));
         }
-        $reservationsCount = $reservationsQuery->count();
+
+        $chambresQuery = Chambre::query()->whereHas('typeChambre.hotel', function ($q) use ($user) {
+            if ($user->role !== 'SUPER_ADMIN') {
+                $q->where('user_id', $user->id);
+            }
+        });
+
+        $hotelsQuery = $user->role === 'SUPER_ADMIN'
+            ? Hotel::query()
+            : Hotel::where('user_id', $user->id);
+
+        // KPIs
+        $totalRevenue = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')->sum('montant_total');
+        $lastWeekRevenue = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+            ->where('date_reservation', '>=', $today->copy()->subWeek())->sum('montant_total');
+        $twoWeeksAgoRevenue = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+            ->whereBetween('date_reservation', [$today->copy()->subWeeks(2), $today->copy()->subWeek()])->sum('montant_total');
+        $revenueChange = $twoWeeksAgoRevenue > 0
+            ? round((($lastWeekRevenue - $twoWeeksAgoRevenue) / $twoWeeksAgoRevenue) * 100, 2)
+            : 0;
+
+        $newBookings = (clone $reservationsQuery)->where('date_reservation', '>=', $today->copy()->subWeek())->count();
+        $prevBookings = (clone $reservationsQuery)->whereBetween('date_reservation', [$today->copy()->subWeeks(2), $today->copy()->subWeek()])->count();
+        $bookingsChange = $prevBookings > 0 ? round((($newBookings - $prevBookings) / $prevBookings) * 100, 2) : 0;
+
+        $checkInToday = (clone $reservationsQuery)->whereDate('date_debut', $today)->where('statut', 'CONFIRMEE')->count();
+        $checkInLastWeek = (clone $reservationsQuery)->whereDate('date_debut', $today->copy()->subWeek())->where('statut', 'CONFIRMEE')->count();
+        $checkInChange = $checkInLastWeek > 0 ? round((($checkInToday - $checkInLastWeek) / $checkInLastWeek) * 100, 2) : 0;
+
+        $checkOutToday = (clone $reservationsQuery)->whereDate('date_fin', $today)->where('statut', 'CONFIRMEE')->count();
+        $checkOutLastWeek = (clone $reservationsQuery)->whereDate('date_fin', $today->copy()->subWeek())->where('statut', 'CONFIRMEE')->count();
+        $checkOutChange = $checkOutLastWeek > 0 ? round((($checkOutToday - $checkOutLastWeek) / $checkOutLastWeek) * 100, 2) : 0;
+
+        // Guests chart (reservations per day this week)
+        $guestsData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d = $today->copy()->subDays($i);
+            $count = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+                ->where(function ($q) use ($d) {
+                    $q->where('date_debut', '<=', $d)->where('date_fin', '>=', $d);
+                })->count();
+            $guestsData[] = ['day' => $d->locale('fr')->translatedFormat('D'), 'count' => $count];
+        }
+
+        // Revenue chart (last 8 months)
+        $revenueData = [];
+        for ($i = 7; $i >= 0; $i--) {
+            $d = $today->copy()->subMonths($i);
+            $sum = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+                ->whereMonth('date_reservation', $d->month)
+                ->whereYear('date_reservation', $d->year)
+                ->sum('montant_total');
+            $revenueData[] = ['month' => $d->locale('fr')->translatedFormat('M'), 'amount' => (float) $sum];
+        }
+
+        // Bookings chart (booked vs canceled this year)
+        $bookedData = [];
+        $canceledData = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $booked = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+                ->whereMonth('date_reservation', $i)->whereYear('date_reservation', $today->year)->count();
+            $canceled = (clone $reservationsQuery)->where('statut', 'ANNULEE')
+                ->whereMonth('date_reservation', $i)->whereYear('date_reservation', $today->year)->count();
+            $bookedData[] = $booked;
+            $canceledData[] = $canceled;
+        }
+        $totalBooked = array_sum($bookedData);
+        $totalCanceled = array_sum($canceledData);
+
+        // Room occupancy
+        $totalRooms = $chambresQuery->count();
+        $occupied = (clone $chambresQuery)->where('etat', 'OCCUPEE')->count();
+        $notReady = (clone $chambresQuery)->where('etat', 'MAINTENANCE')->count();
+        $reserved = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')
+            ->where('date_debut', '>', $today)
+            ->pluck('chambre_id')->unique()->count();
+        $available = $totalRooms - $occupied - $notReady - $reserved;
+        if ($available < 0) {
+            $available = 0;
+        }
+        $occupancyPercent = $totalRooms > 0 ? round(($occupied / $totalRooms) * 100) : 0;
+
+        // Overall ratings
+        $avisQuery = Avis::query()->whereHas('hotel', function ($q) use ($user) {
+            if ($user->role !== 'SUPER_ADMIN') {
+                $q->where('user_id', $user->id);
+            }
+        });
+        $avgRating = (float) $avisQuery->avg('note') ?: 0;
+        $reviewsCount = $avisQuery->count();
+
+        // Recent activity (last 10 reservations)
+        $recentActivity = (clone $reservationsQuery)->with('chambre.typeChambre.hotel')
+            ->latest('date_reservation')->take(10)->get();
+
+        // Booking list (today)
+        $bookingList = (clone $reservationsQuery)->with('chambre.typeChambre.hotel')
+            ->where('statut', 'CONFIRMEE')
+            ->where(function ($q) use ($today) {
+                $q->whereDate('date_debut', $today)->orWhereDate('date_fin', $today);
+            })
+            ->orderBy('date_debut')
+            ->take(10)
+            ->get();
+
+        $hotels = $hotelsQuery->withCount(['typesChambre', 'avis'])->get();
 
         return view('admin.dashboard', [
             'hotels' => $hotels,
-            'reservationsCount' => $reservationsCount,
+            'totalRevenue' => $totalRevenue,
+            'revenueChange' => $revenueChange,
+            'newBookings' => $newBookings,
+            'bookingsChange' => $bookingsChange,
+            'checkInToday' => $checkInToday,
+            'checkInChange' => $checkInChange,
+            'checkOutToday' => $checkOutToday,
+            'checkOutChange' => $checkOutChange,
+            'guestsData' => $guestsData,
+            'revenueData' => $revenueData,
+            'bookedData' => $bookedData,
+            'canceledData' => $canceledData,
+            'totalBooked' => $totalBooked,
+            'totalCanceled' => $totalCanceled,
+            'totalRooms' => $totalRooms,
+            'occupied' => $occupied,
+            'available' => $available,
+            'reserved' => $reserved,
+            'notReady' => $notReady,
+            'occupancyPercent' => $occupancyPercent,
+            'avgRating' => $avgRating,
+            'reviewsCount' => $reviewsCount,
+            'recentActivity' => $recentActivity,
+            'bookingList' => $bookingList,
         ]);
     }
 }
