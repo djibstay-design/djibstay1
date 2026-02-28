@@ -17,6 +17,22 @@
             <p>{{ $reservation->telephone_client }}</p>
         @endif
         <p>Pièce : {{ $reservation->code_identite }}</p>
+        @if ($reservation->photo_carte || $reservation->photo_visage)
+            <div class="mt-4 flex gap-4 flex-wrap">
+                @if ($reservation->photo_carte)
+                    <div>
+                        <p class="text-sm font-medium mb-1">Carte d'identité</p>
+                        <img src="{{ asset('storage/'.$reservation->photo_carte) }}" alt="Carte" class="w-32 h-auto rounded border object-cover">
+                    </div>
+                @endif
+                @if ($reservation->photo_visage)
+                    <div>
+                        <p class="text-sm font-medium mb-1">Photo visage</p>
+                        <img src="{{ asset('storage/'.$reservation->photo_visage) }}" alt="Visage" class="w-32 h-auto rounded border object-cover">
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
     <div class="border border-[#e3e3e0] dark:border-[#3E3E3A] rounded p-4">
         <h2 class="font-semibold mb-2">Séjour</h2>

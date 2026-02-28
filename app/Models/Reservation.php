@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Reservation extends Model
 {
@@ -21,6 +22,8 @@ class Reservation extends Model
         'prix_unitaire',
         'montant_total',
         'photos',
+        'photo_carte',
+        'photo_visage',
         'statut',
         'code_reservation',
     ];
@@ -47,5 +50,17 @@ class Reservation extends Model
             return [];
         }
         return array_filter(array_map('trim', explode(',', $this->photos)));
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Reservation $reservation): void {
+            if ($reservation->photo_carte) {
+                Storage::disk('public')->delete($reservation->photo_carte);
+            }
+            if ($reservation->photo_visage) {
+                Storage::disk('public')->delete($reservation->photo_visage);
+            }
+        });
     }
 }

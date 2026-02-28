@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ReservationStatusChangedMail;
 use App\Models\Reservation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class ReservationController extends Controller
@@ -42,7 +44,12 @@ class ReservationController extends Controller
             'statut' => ['required', 'in:EN_ATTENTE,CONFIRMEE,ANNULEE'],
         ]);
 
+        $ancienStatut = $reservation->statut;
         $reservation->update($validated);
+
+        if ($ancienStatut !== $reservation->statut) {
+            Mail::to($reservation->email_client)->send(new ReservationStatusChangedMail($reservation, $ancienStatut));
+        }
 
         return redirect()->route('admin.reservations.show', $reservation)->with('success', 'Statut mis à jour.');
     }

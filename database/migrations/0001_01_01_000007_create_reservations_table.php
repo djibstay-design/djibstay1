@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('prenom_client', 100);
             $table->string('email_client', 150);
             $table->string('telephone_client', 20)->nullable();
+            $table->string('photo_carte')->nullable();
+            $table->string('photo_visage')->nullable();
             $table->string('code_identite', 50);
             $table->foreignId('chambre_id')->constrained('chambres')->cascadeOnDelete();
             $table->date('date_reservation');

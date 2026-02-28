@@ -14,6 +14,7 @@
             <a href="{{ route('home') }}" class="font-semibold text-lg">Réservation Hôtel</a>
             <div class="flex items-center gap-4">
                 <a href="{{ route('hotels.index') }}" class="text-sm hover:underline">Hôtels</a>
+                <a href="{{ route('reservations.status') }}" class="text-sm hover:underline">Suivi réservation</a>
                 @auth
                     <a href="{{ route('admin.dashboard') }}" class="text-sm px-4 py-2 rounded border border-[#e3e3e0] dark:border-[#3E3E3A] hover:bg-gray-100 dark:hover:bg-[#3E3E3A]">Admin</a>
                     <form method="POST" action="{{ route('logout') }}" class="inline">

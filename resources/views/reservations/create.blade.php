@@ -10,7 +10,7 @@
         - {{ number_format($chambre->typeChambre->prix_par_nuit, 0, ',', ' ') }} FCFA / nuit
     </p>
 
-    <form action="{{ route('reservations.store') }}" method="POST" class="space-y-4">
+    <form action="{{ route('reservations.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
         @csrf
         <input type="hidden" name="chambre_id" value="{{ $chambre->id }}">
 
@@ -65,10 +65,16 @@
         </div>
 
         <div>
-            <label for="photos" class="block text-sm font-medium mb-1">Photos (URLs séparées par des virgules)</label>
-            <input type="text" name="photos" id="photos" value="{{ old('photos') }}"
-                placeholder="https://exemple.com/photo1.jpg, https://exemple.com/photo2.jpg"
-                class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">
+            <label for="photo_carte" class="block text-sm font-medium mb-1">Photo de la carte d'identité *</label>
+            <input type="file" name="photo_carte" id="photo_carte" required accept="image/jpeg,image/jpg,image/png"
+                class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 dark:file:bg-[#3E3E3A]">
+            <p class="text-xs text-gray-500 mt-1">JPG ou PNG, max 2 Mo</p>
+        </div>
+        <div>
+            <label for="photo_visage" class="block text-sm font-medium mb-1">Photo du visage *</label>
+            <input type="file" name="photo_visage" id="photo_visage" required accept="image/jpeg,image/jpg,image/png"
+                class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 dark:file:bg-[#3E3E3A]">
+            <p class="text-xs text-gray-500 mt-1">JPG ou PNG, max 2 Mo</p>
         </div>
 
         <button type="submit" class="px-6 py-2 bg-[#1b1b18] dark:bg-[#EDEDEC] text-white dark:text-[#1b1b18] rounded font-medium">

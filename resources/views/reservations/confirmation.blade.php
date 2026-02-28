@@ -9,7 +9,8 @@
     <p class="text-lg font-mono font-bold bg-gray-100 dark:bg-[#3E3E3A] px-4 py-3 rounded inline-block">
         {{ $reservation->code_reservation }}
     </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Conservez ce code pour suivre votre réservation.</p>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Conservez ce code pour suivre votre réservation. Un email de confirmation vous a été envoyé.</p>
+    <a href="{{ route('reservations.status').'?code='.urlencode($reservation->code_reservation) }}" class="inline-block mt-2 text-sm underline">Suivre le statut de ma réservation</a>
 
     <div class="mt-8 text-left border border-[#e3e3e0] dark:border-[#3E3E3A] rounded p-4">
         <p><strong>Hôtel :</strong> {{ $reservation->chambre->typeChambre->hotel->nom }}</p>

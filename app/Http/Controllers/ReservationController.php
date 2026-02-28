@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ReservationCreatedMail;
 use App\Models\Chambre;
 use App\Models\Reservation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -31,7 +33,8 @@ class ReservationController extends Controller
             'date_debut' => ['required', 'date', 'after_or_equal:today'],
             'date_fin' => ['required', 'date', 'after:date_debut'],
             'quantite' => ['required', 'integer', 'min:1'],
-            'photos' => ['nullable', 'string'],
+            'photo_carte' => ['required', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'photo_visage' => ['required', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
         ]);
 
         $conflicting = Reservation::where('chambre_id', $chambre->id)
@@ -49,13 +52,36 @@ class ReservationController extends Controller
         $montantTotal = round($prixUnitaire * $validated['quantite'] * $nuits, 2);
 
         $reservation = Reservation::create([
-            ...$validated,
+            'chambre_id' => $validated['chambre_id'],
+            'nom_client' => $validated['nom_client'],
+            'prenom_client' => $validated['prenom_client'],
+            'email_client' => $validated['email_client'],
+            'telephone_client' => $validated['telephone_client'] ?? null,
+            'code_identite' => $validated['code_identite'],
             'date_reservation' => now()->toDateString(),
+            'date_debut' => $validated['date_debut'],
+            'date_fin' => $validated['date_fin'],
+            'quantite' => $validated['quantite'],
             'prix_unitaire' => $prixUnitaire,
             'montant_total' => $montantTotal,
             'statut' => 'EN_ATTENTE',
             'code_reservation' => 'RES-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
         ]);
+
+        $basePath = 'reservations/'.$reservation->id;
+        $photoCarte = $request->file('photo_carte')->store($basePath, 'public');
+        $photoVisage = $request->file('photo_visage')->store($basePath, 'public');
+
+        $reservation->update([
+            'photo_carte' => $photoCarte,
+            'photo_visage' => $photoVisage,
+        ]);
+
+        $reservation->load('chambre.typeChambre.hotel');
+        $adminHotel = $reservation->chambre->typeChambre->hotel->user;
+
+        Mail::to($adminHotel->email)->send(new ReservationCreatedMail($reservation, forAdmin: true));
+        Mail::to($reservation->email_client)->send(new ReservationCreatedMail($reservation, forAdmin: false));
 
         return redirect()->route('reservations.confirmation', $reservation)
             ->with('success', 'Réservation envoyée. Conservez votre code de réservation.');

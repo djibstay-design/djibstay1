@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Avis;
 use App\Models\Chambre;
 use App\Models\Hotel;
 use App\Models\TypeChambre;
@@ -106,6 +107,33 @@ class HotelSeeder extends Seeder
                         'type_id' => $type->id,
                     ]);
                 }
+            }
+        }
+
+        $avisData = [
+            ['nom' => 'Marie Diallo', 'email' => 'marie@example.com', 'note' => 5, 'commentaire' => 'Excellent séjour ! Personnel très accueillant et chambres impeccables.'],
+            ['nom' => 'Amadou Sow', 'email' => 'amadou@example.com', 'note' => 4, 'commentaire' => 'Très bon rapport qualité-prix. Je recommande.'],
+            ['nom' => 'Fatou Ndiaye', 'email' => 'fatou@example.com', 'note' => 5, 'commentaire' => 'Un vrai havre de paix. La vue sur l\'océan est magnifique.'],
+            ['nom' => 'Ibrahima Fall', 'email' => 'ibrahima@example.com', 'note' => 4, 'commentaire' => 'Propre et bien situé. Petit déjeuner copieux.'],
+            ['nom' => 'Awa Ba', 'email' => 'awa@example.com', 'note' => 5, 'commentaire' => 'Séjour parfait en famille. Les enfants ont adoré la piscine.'],
+            ['nom' => 'Moussa Gueye', 'email' => 'moussa@example.com', 'note' => 4, 'commentaire' => 'Calme et confortable. Idéal pour le travail.'],
+            ['nom' => 'Khadija Mbaye', 'email' => 'khadija@example.com', 'note' => 5, 'commentaire' => 'Service impeccable. Nous reviendrons sans hésiter.'],
+            ['nom' => 'Ousmane Diop', 'email' => 'ousmane@example.com', 'note' => 4, 'commentaire' => 'Belle découverte. Le restaurant est excellent.'],
+        ];
+
+        $hotelsList = Hotel::all();
+        $avisIndex = 0;
+        foreach ($hotelsList as $hotel) {
+            foreach (array_slice($avisData, 0, 2) as $a) {
+                Avis::create([
+                    'nom_client' => $a['nom'],
+                    'email_client' => 'avis'.$avisIndex.'@example.com',
+                    'note' => $a['note'],
+                    'commentaire' => $a['commentaire'],
+                    'date_avis' => now()->subDays(rand(1, 30))->toDateString(),
+                    'hotel_id' => $hotel->id,
+                ]);
+                $avisIndex++;
             }
         }
     }
