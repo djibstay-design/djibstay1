@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DjiboutiStay - Discover Your Next Stay</title>
-    <meta name="description" content="Find and book the best hotels, resorts and stays in Djibouti. Compare prices, read reviews and get the best deals at DjiboutiStay.">
+    <title>DjibStay - Official Hotel Booking Platform in Djibouti</title>
+    <meta name="description" content="Trouvez et réservez les meilleurs hôtels à Djibouti. Comparez les prix, lisez les avis et profitez des meilleures offres.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -43,8 +43,14 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            height: 56px;
+            min-height: 64px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
 
         .navbar-brand {
@@ -54,10 +60,33 @@
             letter-spacing: -0.5px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            text-decoration: none;
         }
 
-        .navbar-brand span { color: var(--yellow); }
+        .navbar-brand .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .navbar-brand .logo-icon svg { width: 24px; height: 24px; }
+
+        .navbar-tagline {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .navbar-brand .logo-text { color: #febb02; font-weight: 800; }
 
         .navbar-nav {
             display: flex;
@@ -66,12 +95,12 @@
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.85);
+            color: rgba(255,255,255,0.9);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: 8px 16px;
+            border-radius: 4px;
             border: 1px solid transparent;
             display: flex;
             align-items: center;
@@ -89,14 +118,14 @@
 
         .navbar-auth {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
         }
 
         .btn-nav {
             padding: 8px 18px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
@@ -104,31 +133,32 @@
             border: none;
         }
 
-        .btn-register {
+        .btn-partner {
             background: transparent;
             color: #fff;
             border: 1px solid rgba(255,255,255,0.6);
         }
 
-        .btn-register:hover { background: rgba(255,255,255,0.1); }
+        .btn-partner:hover { background: rgba(255,255,255,0.1); }
 
         .btn-signin {
-            background: #fff;
-            color: var(--blue);
+            background: #0071c2;
+            color: #fff;
         }
 
-        .btn-signin:hover { background: #f0f4ff; }
+        .btn-signin:hover { background: var(--blue-hover); }
 
         /* ─── HERO ─── */
         .hero {
             position: relative;
             min-height: 520px;
             background: var(--blue);
-            overflow: hidden;
+            overflow: visible;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             padding-bottom: 60px;
+            z-index: 30;
         }
 
         .hero-bg {
@@ -138,6 +168,7 @@
             opacity: 1;
             transform: scale(1.05);
             animation: heroPan 18s ease-in-out infinite alternate;
+            border-radius: 0;
         }
 
         @keyframes heroPan {
@@ -193,51 +224,60 @@
             animation: fadeInDown 0.7s ease 0.2s both;
         }
 
-        /* ─── SEARCH BAR ─── */
+        /* ─── SEARCH BAR (style image: bordure jaune #febb02, fond blanc, bouton bleu) ─── */
         .search-bar {
             display: flex;
             align-items: stretch;
             background: #fff;
-            border-radius: var(--radius);
-            border: 3px solid var(--yellow);
+            border-radius: 12px;
+            border: 3px solid #febb02;
             overflow: visible;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 24px rgba(254, 187, 2, 0.25);
             max-width: 1100px;
             animation: fadeInUp 0.7s ease 0.3s both;
             position: relative;
         }
 
-        /* ── Individual search field wrapper ── */
-        .sf-wrap {
+        .search-bar:focus-within,
+        .search-bar.search-bar-active {
+            box-shadow: 0 6px 28px rgba(254, 187, 2, 0.35);
+        }
+
+        /* ── Champs de la barre (fond blanc, séparateur vertical) ── */
+        .search-bar .sf-wrap {
             flex: 1;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 13px 16px;
-            border-right: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            border-right: 1px solid #e5e7eb;
             cursor: pointer;
             transition: background 0.2s;
             min-width: 0;
+            background: #fff;
         }
 
-        .sf-wrap:hover { background: #f5f9ff; }
-        .sf-wrap.active { background: #fffbee; outline: 2px solid var(--yellow); outline-offset: -2px; }
+        .search-bar .sf-wrap:hover { background: #f8fafc; }
+        .search-bar .sf-wrap.active { background: #fff; }
+        .search-bar .sf-wrap:last-of-type { border-right: none; }
 
         .sf-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 4px;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
+
+        .sf-label svg { color: #64748b; flex-shrink: 0; }
 
         .sf-value {
             font-size: 14px;
-            color: #333;
+            color: #1e293b;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -248,13 +288,13 @@
             background: transparent;
             font-family: 'Inter', sans-serif;
             font-size: 14px;
-            color: #333;
+            color: #1e293b;
             outline: none;
             width: 100%;
             min-width: 0;
         }
 
-        .sf-value input::placeholder { color: #9ca3af; }
+        .sf-value input::placeholder { color: #64748b; }
 
         /* Clear button on destination */
         .sf-clear {
@@ -280,20 +320,20 @@
         .sf-chevron {
             margin-left: auto;
             font-size: 10px;
-            color: #6b7280;
+            color: #64748b;
             transition: transform 0.25s;
             flex-shrink: 0;
         }
 
         .sf-chevron.open { transform: rotate(180deg); }
 
-        /* ── DATE placeholder text ── */
-        .date-placeholder { color: #9ca3af; font-size: 14px; }
-        .date-value { color: #333; font-size: 14px; font-weight: 500; }
+        /* ── DATE placeholder / value ── */
+        .date-placeholder { color: #64748b; font-size: 14px; }
+        .date-value { color: #1e293b; font-size: 14px; font-weight: 500; }
 
-        /* ── SEARCH BUTTON ── */
+        /* ── BOUTON RECHERCHER (bleu, intégré à la barre) ── */
         .search-btn {
-            background: var(--blue-light);
+            background: #003580;
             color: #fff;
             border: none;
             padding: 0 28px;
@@ -302,20 +342,24 @@
             font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
-            border-radius: 0 5px 5px 0;
+            border-radius: 0 9px 9px 0;
             white-space: nowrap;
             flex-shrink: 0;
         }
 
-        .search-btn:hover { background: var(--blue-hover); transform: scaleX(1.03); }
+        .search-btn:hover { background: #002a5c; }
 
-        /* ── CALENDAR POPUP ── */
+        .search-option { padding: 0 2px; }
+        .search-checkbox { display: inline-flex; align-items: center; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.95); }
+        .search-checkbox span { user-select: none; }
+
+        /* ── CALENDAR POPUP (au-dessus de tout le contenu) ── */
         .cal-popup {
             display: none;
             position: absolute;
             top: calc(100% + 8px);
             left: 0;
-            z-index: 500;
+            z-index: 9999;
             background: #fff;
             border: 1px solid #e0e0e0;
             border-radius: 12px;
@@ -347,7 +391,30 @@
 
         .cal-tab.active { color: var(--blue-light); border-bottom-color: var(--blue-light); }
 
-        .cal-body { padding: 16px 20px 20px; display: flex; gap: 24px; }
+        .cal-body { padding: 20px 24px; display: flex; gap: 28px; }
+
+        .cal-quick-days {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 24px 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .cal-quick-days button {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue-light);
+            background: #eff6ff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .cal-quick-days button:hover { background: #dbeafe; }
 
         .cal-month { flex: 1; }
 
@@ -447,7 +514,7 @@
             position: absolute;
             top: calc(100% + 8px);
             left: 0;
-            z-index: 500;
+            z-index: 10000;
             background: #fff;
             border: 1px solid #e0e0e0;
             border-radius: 12px;
@@ -912,54 +979,100 @@
 
         .filter-btn:hover { background: var(--blue-hover); }
 
-        /* ─── NEWSLETTER ─── */
-        .newsletter {
-            background: #ebf3ff;
-            padding: 60px 40px;
-            text-align: center;
+        /* ─── NEWSLETTER (dark blue, rounded, yellow CTA) ─── */
+        .newsletter-wrap {
+            padding: 48px 40px 56px;
+            background: #f8fafc;
         }
 
-        .newsletter-inner { max-width: 540px; margin: 0 auto; }
+        .newsletter {
+            max-width: 720px;
+            margin: 0 auto;
+            background: var(--blue);
+            border-radius: 24px;
+            padding: 48px 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 24px rgba(0,53,128,0.15);
+        }
+
+        .newsletter::before,
+        .newsletter::after {
+            content: '';
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            pointer-events: none;
+        }
+
+        .newsletter::before {
+            top: -60px;
+            left: -60px;
+        }
+
+        .newsletter::after {
+            bottom: -80px;
+            right: -80px;
+            width: 220px;
+            height: 220px;
+        }
+
+        .newsletter-inner { position: relative; z-index: 1; }
 
         .newsletter h2 {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
-            color: #1a1a2e;
-            margin-bottom: 8px;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
         }
 
-        .newsletter p { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+        .newsletter .newsletter-sub {
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 28px;
+        }
 
         .newsletter-form {
             display: flex;
             gap: 0;
-            border-radius: var(--radius);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 480px;
+            margin: 0 auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
         .newsletter-input {
             flex: 1;
-            padding: 14px 18px;
+            padding: 16px 20px;
             border: none;
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 15px;
             outline: none;
+            background: #fff;
+            color: #1a1a2e;
         }
 
+        .newsletter-input::placeholder { color: #94a3b8; }
+
         .newsletter-btn {
-            background: var(--blue-light);
-            color: #fff;
+            background: var(--yellow);
+            color: #1a1a2e;
             border: none;
-            padding: 14px 28px;
+            padding: 16px 32px;
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
         }
 
-        .newsletter-btn:hover { background: var(--blue-hover); }
+        .newsletter-btn:hover { background: #f5a623; color: #0f172a; }
 
         /* ─── FOOTER ─── */
         footer {
@@ -1012,8 +1125,8 @@
 
         .footer-bottom p { font-size: 12px; color: #6b7280; }
 
-        .footer-logo { font-size: 18px; font-weight: 800; color: #fff; }
-        .footer-logo span { color: var(--yellow); }
+        .footer-logo { font-size: 18px; font-weight: 800; }
+        .footer-logo .logo-text { color: #febb02; }
 
         /* ─── ANIMATIONS ─── */
         @keyframes fadeInDown {
@@ -1053,9 +1166,10 @@
             .navbar-nav { display: none; }
             .hero { min-height: 440px; }
             .hero-title { font-size: 30px; }
-            .search-bar { flex-direction: column; border-radius: var(--radius); }
-            .sf-wrap { border-right: none; border-bottom: 1px solid #e0e0e0; }
-            .search-btn { border-radius: 0 0 5px 5px; padding: 14px; }
+            .search-bar { flex-direction: column; border-radius: 12px; overflow: visible; }
+            .search-bar .sf-wrap { border-right: none; border-bottom: 1px solid #e5e7eb; }
+            .search-bar .sf-wrap:last-of-type { border-bottom: none; }
+            .search-btn { border-radius: 0 0 9px 9px; padding: 14px 20px; }
             .section { padding: 32px 20px; }
             .filter-bar { padding: 12px 20px; }
             .stats-inner { grid-template-columns: 1fr; gap: 16px; }
@@ -1068,27 +1182,34 @@
 
 <!-- ═══════════════════════════════════ NAVBAR ═════════════════════════════════════ -->
 <nav class="navbar">
-    <a href="{{ url('/') }}" class="navbar-brand">Djibouti<span>Stay</span></a>
-
-    <div class="navbar-nav">
-        <a href="{{ url('/') }}" class="nav-link active">🏨 Stays</a>
-        <a href="#" class="nav-link">✈️ Flights</a>
-        <a href="#" class="nav-link">🚗 Car rentals</a>
-        <a href="#" class="nav-link">🎯 Attractions</a>
+    <div class="navbar-left">
+        <a href="{{ url('/') }}" class="navbar-brand">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#febb02" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+                <span class="logo-text">DjibStay</span>
+                <div class="navbar-tagline">PLATEFORME OFFICIELLE DE RÉSERVATION D'HÔTELS À DJIBOUTI</div>
+            </div>
+        </a>
+        <div class="navbar-nav">
+            <a href="{{ route('hotels.index') }}" class="nav-link {{ request()->routeIs('hotels.*') ? 'active' : '' }}">Hôtels</a>
+            <a href="{{ url('/') }}#explore" class="nav-link">Villes</a>
+            <a href="{{ url('/') }}#deals" class="nav-link">Offres</a>
+            <a href="#" class="nav-link">À propos</a>
+            <a href="#" class="nav-link">Contact</a>
+        </div>
     </div>
-
     <div class="navbar-auth">
         @auth
-            <a href="{{ route('admin.dashboard') }}" class="btn-nav btn-register">Dashboard</a>
+            <a href="{{ route('admin.dashboard') }}" class="btn-nav btn-partner">Tableau de bord</a>
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
-                <button type="submit" class="btn-nav btn-signin">Sign out</button>
+                <button type="submit" class="btn-nav btn-signin">Déconnexion</button>
             </form>
         @else
-            @if (Route::has('register'))
-                <a href="{{ route('register') }}" class="btn-nav btn-register">Register</a>
-            @endif
-            <a href="{{ route('login') }}" class="btn-nav btn-signin">Sign in</a>
+            <a href="{{ route('login') }}" class="btn-nav btn-partner">Espace partenaire</a>
+            <a href="{{ route('login') }}" class="btn-nav btn-signin">Connexion</a>
         @endauth
     </div>
 </nav>
@@ -1099,35 +1220,34 @@
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <div class="hero-badge">✨ Best deals in Djibouti</div>
-        <h1 class="hero-title">Discover your next stay in Djibouti</h1>
-        <p class="hero-sub">Search deals on hotels, homes, and much more…</p>
+        <h1 class="hero-title">Trouvez votre séjour idéal à Djibouti</h1>
+        <p class="hero-sub">Comparez les hôtels, trouvez les meilleurs prix et réservez en toute confiance à travers le Golfe de Tadjoura.</p>
 
         <form method="GET" action="{{ url('/') }}" id="hero-search" class="search-bar">
 
             <!-- ── DESTINATION ── -->
             <div class="sf-wrap" id="sf-dest" style="flex:2;" onclick="document.getElementById('dest-input').focus()">
                 <div class="sf-label">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    Destination
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Où allez-vous ?
                 </div>
                 <div class="sf-value">
                     <input type="text" id="dest-input" name="city"
-                           placeholder="Where are you going?"
+                           placeholder="Où allez-vous ?"
                            value="{{ request('city', '') }}"
                            autocomplete="off">
-                    <button type="button" class="sf-clear" id="dest-clear" title="Clear">✕</button>
+                    <button type="button" class="sf-clear" id="dest-clear" title="Effacer">✕</button>
                 </div>
             </div>
 
-            <!-- ── CHECK-IN / CHECK-OUT ── -->
+            <!-- ── DATES ── -->
             <div class="sf-wrap" id="sf-dates" style="flex:2; position:relative;" onclick="toggleCalendar()">
                 <div class="sf-label">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    Check-in &mdash; Check-out
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Dates
                 </div>
                 <div class="sf-value">
-                    <span id="date-display" class="date-placeholder">Date d&rsquo;arriv&eacute;e — Date de d&eacute;part</span>
+                    <span id="date-display" class="date-placeholder">Date d'arrivée — Date de départ</span>
                     <input type="hidden" name="check_in"  id="checkin-val" value="{{ request('check_in') ?? request('checkin') ?? '' }}">
                     <input type="hidden" name="check_out" id="checkout-val" value="{{ request('check_out') ?? request('checkout') ?? '' }}">
                 </div>
@@ -1135,35 +1255,41 @@
                 <!-- Calendar popup -->
                 <div class="cal-popup" id="cal-popup" onclick="event.stopPropagation()">
                     <div class="cal-tabs">
-                        <div class="cal-tab active" id="tab-cal">📅 Calendrier</div>
-                        <div class="cal-tab" id="tab-flex" onclick="event.stopPropagation(); switchTab('flex')">🔄 Dates flexibles</div>
+                        <div class="cal-tab active" id="tab-cal" onclick="event.stopPropagation(); switchTab('cal')">Calendrier</div>
+                        <div class="cal-tab" id="tab-flex" onclick="event.stopPropagation(); switchTab('flex')">Dates flexibles</div>
                     </div>
                     <div class="cal-body" id="cal-body">
                         <div class="cal-month" id="cal-left"></div>
                         <div class="cal-month" id="cal-right"></div>
                     </div>
+                    <div class="cal-quick-days">
+                        <button type="button" onclick="quickStay(1)">+ 1 jour</button>
+                        <button type="button" onclick="quickStay(2)">+ 2 jours</button>
+                        <button type="button" onclick="quickStay(3)">+ 3 jours</button>
+                        <button type="button" onclick="quickStay(7)">+ 1 semaine</button>
+                    </div>
                     <div class="cal-footer">
-                        <span class="cal-footer-hint" id="cal-hint">S&eacute;lectionnez une date d&rsquo;arriv&eacute;e</span>
+                        <span class="cal-footer-hint" id="cal-hint">Sélectionnez une date d'arrivée</span>
                         <button type="button" class="cal-clear" onclick="clearDates()">Effacer les dates</button>
                     </div>
                 </div>
             </div>
 
-            <!-- ── GUESTS & ROOMS ── -->
-            <div class="sf-wrap" id="sf-guests" style="position:relative;" onclick="toggleGuests(event)">
+            <!-- ── VOYAGEURS & CHAMBRES ── -->
+            <div class="sf-wrap" id="sf-guests" style="flex:1.2; position:relative;" onclick="toggleGuests(event)">
                 <div class="sf-label">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Guests &amp; rooms
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Voyageurs
                 </div>
                 <div class="sf-value">
-                    <span id="guest-summary">2 adultes · 0&nbsp;enfant · 1&nbsp;chambre</span>
+                    <span id="guest-summary">2 adultes · 0 enfant · 1 chambre</span>
                     <span class="sf-chevron" id="sf-chevron">&#9660;</span>
                 </div>
 
                 <!-- Guest popup -->
                 <div class="guest-popup" id="guest-popup" onclick="event.stopPropagation()">
                     <div class="gp-row">
-                        <div><div class="gp-label">Adults</div><div class="gp-sub">Age 18+</div></div>
+                        <div><div class="gp-label">Adultes</div><div class="gp-sub">18 ans et +</div></div>
                         <div class="gp-ctrl">
                             <button type="button" class="gp-btn" id="btn-adults-dec" onclick="adjustCount('adults',-1)">−</button>
                             <span class="gp-num" id="adults-count">2</span>
@@ -1171,7 +1297,7 @@
                         </div>
                     </div>
                     <div class="gp-row">
-                        <div><div class="gp-label">Children</div><div class="gp-sub">Ages 0–17</div></div>
+                        <div><div class="gp-label">Enfants</div><div class="gp-sub">0–17 ans</div></div>
                         <div class="gp-ctrl">
                             <button type="button" class="gp-btn" id="btn-children-dec" onclick="adjustCount('children',-1)">−</button>
                             <span class="gp-num" id="children-count">0</span>
@@ -1179,7 +1305,7 @@
                         </div>
                     </div>
                     <div class="gp-row">
-                        <div><div class="gp-label">Rooms</div></div>
+                        <div><div class="gp-label">Chambres</div></div>
                         <div class="gp-ctrl">
                             <button type="button" class="gp-btn" id="btn-rooms-dec" onclick="adjustCount('rooms',-1)">−</button>
                             <span class="gp-num" id="rooms-count">1</span>
@@ -1195,56 +1321,45 @@
             <input type="hidden" name="children" id="input-children" value="{{ request('children', 0) }}">
             <input type="hidden" name="rooms" id="input-rooms" value="{{ request('rooms', 1) }}">
 
-            <button type="submit" class="search-btn">Search</button>
+            <button type="submit" class="search-btn">Rechercher</button>
         </form>
+        <div class="search-option" style="margin-top: 12px; padding-left: 4px;">
+            <label class="search-checkbox">
+                <input type="checkbox" name="entire_property" value="1" style="margin-right: 10px; cursor: pointer;">
+                <span>Je recherche un logement entier</span>
+            </label>
+        </div>
     </div>
 </div>
 
-<!-- ─── GENIUS PROMO STRIP ─── -->
-<div class="promo-strip">
-    <span class="genius-badge">GENIUS</span>
-    <span><strong>Save 15% or more</strong> at participating properties — Sign in to get started</span>
-    <a href="{{ route('login') }}" style="color:var(--blue); font-weight:700; margin-left:auto; text-decoration:none;">Sign in &rsaquo;</a>
-</div>
-
-<!-- ═══════════════════════════════════ OFFERS ═══════════════════════════════════ -->
-<div style="background:#f9fafb; padding: 8px 0;">
-    <div class="section fade-in">
+<!-- ═══════════════════════════════════ SPECIAL DEALS (cliquable, au-dessus du hero) ── -->
+<div id="deals" style="background:#f9fafb; padding: 48px 40px; position: relative; z-index: 40; pointer-events: auto;">
+    <div class="section fade-in" style="padding:0;">
         <div class="section-head">
-            <div>
-                <div class="section-title">Offers</div>
-                <div class="section-sub">Promotions, deals, and special offers for you</div>
-            </div>
+            <div class="section-title">Offres Spéciales</div>
+            <a href="{{ route('hotels.index') }}" class="view-all">Voir toutes les offres &rsaquo;</a>
         </div>
-
-        <div class="offers-grid">
-            <div class="offer-card">
-                <img src="/images/escale.jpg" alt="New Year Offer" class="offer-img" onerror="this.style.background='#e0e7ef'; this.style.height='180px'">
-                <div class="offer-body">
-                    <span class="offer-tag">🔥 Limited Time</span>
-                    <div class="offer-title">Escale international hotel</div>
-                    <div class="offer-desc">Save 15% or more when you book and stay before March 31, 2026</div>
-                    <a href="{{ url('/') }}" class="offer-btn">Find Getaway Deals</a>
+        <div class="offers-grid" style="grid-template-columns: repeat(2, 1fr); gap: 24px;">
+            <a href="{{ route('hotels.index') }}" class="offer-card offer-card-link" style="flex-direction: row; height: 220px; text-decoration: none; color: inherit;">
+                <div style="width: 50%; height: 100%; min-height: 220px; overflow: hidden; pointer-events: none;">
+                    <img src="/images/waafi.jpg" alt="Stay Longer Save More" class="offer-img" style="height: 100%; width: 100%; object-fit: cover; pointer-events: none;" onerror="this.style.background='#e0e7ef'">
                 </div>
-            </div>
-            <div class="offer-card">
-                <img src="/images/waafi.jpg" alt="Seaside Bliss" class="offer-img" onerror="this.style.background='#e0e7ef'; this.style.height='180px'">
-                <div class="offer-body">
-                    <span class="offer-tag">🌊 Beach Deal</span>
-                    <div class="offer-title">Waaf Residence</div>
-                    <div class="offer-desc">Exclusive beach resort deals at the Gulf of Tajura starting from $120/night</div>
-                    <a href="{{ url('/') }}" class="offer-btn">Explore Resorts</a>
+                <div class="offer-body" style="width: 50%; padding: 24px; display: flex; flex-direction: column; justify-content: center; pointer-events: none;">
+                    <div class="offer-title" style="font-size: 20px; margin-bottom: 8px;">Séjournez plus, économisez plus</div>
+                    <div class="offer-desc" style="margin-bottom: 16px;">Jusqu'à 20% de réduction pour les séjours de plus de 5 nuits.</div>
+                    <span class="offer-btn">Réserver</span>
                 </div>
-            </div>
-            <div class="offer-card">
-                <img src="/images/Ayla.jpg" alt="Ayla hotel" class="offer-img" onerror="this.style.background='#e0e7ef'; this.style.height='180px'">
-                <div class="offer-body">
-                    <span class="offer-tag">💎 Exclusive</span>
-                    <div class="offer-title">Ayla</div>
-                    <div class="offer-desc">Book a stay at our premier properties and unlock exclusive member benefits</div>
-                    <a href="{{ url('/') }}" class="offer-btn">Learn More</a>
+            </a>
+            <a href="{{ route('hotels.index') }}" class="offer-card offer-card-link" style="flex-direction: row; height: 220px; text-decoration: none; color: inherit;">
+                <div style="width: 50%; height: 100%; min-height: 220px; overflow: hidden; pointer-events: none;">
+                    <img src="{{ asset('images/best western.jpeg') }}" alt="Last Minute Escape" class="offer-img" style="height: 100%; width: 100%; object-fit: cover; pointer-events: none;" onerror="this.style.background='#e0e7ef'">
                 </div>
-            </div>
+                <div class="offer-body" style="width: 50%; padding: 24px; display: flex; flex-direction: column; justify-content: center; pointer-events: none;">
+                    <div class="offer-title" style="font-size: 20px; margin-bottom: 8px;">Escapade de dernière minute</div>
+                    <div class="offer-desc" style="margin-bottom: 16px;">Offres exclusives pour les réservations de ce soir à Djibouti.</div>
+                    <span class="offer-btn">Découvrir</span>
+                </div>
+            </a>
         </div>
     </div>
 </div>
@@ -1254,15 +1369,15 @@
     <div class="stats-inner">
         <div class="stat-item">
             <span class="stat-num" id="stat-hotels">{{ $stats['total_hotels'] }}</span>
-            <span class="stat-label">Properties available</span>
+            <span class="stat-label">Hébergements disponibles</span>
         </div>
         <div class="stat-item">
             <span class="stat-num" id="stat-bookings">{{ $stats['total_bookings'] }}</span>
-            <span class="stat-label">Happy bookings</span>
+            <span class="stat-label">Réservations effectuées</span>
         </div>
         <div class="stat-item">
             <span class="stat-num">{{ number_format($stats['avg_rating'], 1) }}★</span>
-            <span class="stat-label">Average rating</span>
+            <span class="stat-label">Note moyenne</span>
         </div>
     </div>
 </div>
@@ -1270,73 +1385,76 @@
 <!-- ═══════════════════════════════════ FILTER BAR ════════════════════════════════ -->
 <div class="filter-bar">
     <form class="filter-inner" method="GET" action="{{ url('/') }}">
-        <span class="filter-label">Filter:</span>
-        <input class="filter-input" type="text" name="city" placeholder="City (Djibouti, Obock…)" value="{{ request('city') }}">
-        <input class="filter-input" type="number" name="min_price" placeholder="Min price" value="{{ request('min_price') }}" style="max-width:110px">
-        <input class="filter-input" type="number" name="max_price" placeholder="Max price" value="{{ request('max_price') }}" style="max-width:110px">
+        <span class="filter-label">Filtrer :</span>
+        <input class="filter-input" type="text" name="city" placeholder="Ville (Djibouti, Obock…)" value="{{ request('city') }}">
+        <input class="filter-input" type="number" name="min_price" placeholder="Prix min" value="{{ request('min_price') }}" style="max-width:110px">
+        <input class="filter-input" type="number" name="max_price" placeholder="Prix max" value="{{ request('max_price') }}" style="max-width:110px">
         <select class="filter-input" name="min_rating" style="max-width:130px">
-            <option value="">Any rating</option>
-            <option value="3" {{ request('min_rating')=='3' ? 'selected':'' }}>3★ and above</option>
-            <option value="4" {{ request('min_rating')=='4' ? 'selected':'' }}>4★ and above</option>
-            <option value="4.5" {{ request('min_rating')=='4.5' ? 'selected':'' }}>4.5★ and above</option>
+            <option value="">Toutes les notes</option>
+            <option value="3" {{ request('min_rating')=='3' ? 'selected':'' }}>3★ et plus</option>
+            <option value="4" {{ request('min_rating')=='4' ? 'selected':'' }}>4★ et plus</option>
+            <option value="4.5" {{ request('min_rating')=='4.5' ? 'selected':'' }}>4.5★ et plus</option>
         </select>
         <select class="filter-input" name="sort" style="max-width:160px">
             <option value="rating" {{ request('sort')=='rating' ? 'selected':'' }}>Best Rating</option>
             <option value="price_asc" {{ request('sort')=='price_asc' ? 'selected':'' }}>Price: Low → High</option>
             <option value="price_desc" {{ request('sort')=='price_desc' ? 'selected':'' }}>Price: High → Low</option>
         </select>
-        <button type="submit" class="filter-btn">Apply Filters</button>
+        <button type="submit" class="filter-btn">Appliquer</button>
     </form>
 </div>
 
 <!-- ═══════════════════════════════════ FEATURED HOTELS ══════════════════════════ -->
 <div class="section fade-in">
     <div class="section-head">
-        <div>
-            <div class="section-title">Featured stays in Djibouti</div>
-            <div class="section-sub">Our most recommended properties for your trip</div>
-        </div>
-        <a href="{{ url('/') }}" class="view-all">View all properties →</a>
+        <div class="section-title">Hôtels en vedette</div>
+        <a href="{{ url('/') }}" class="view-all">Voir tous les hébergements →</a>
     </div>
 
     @if($hotels->count() > 0)
         @php
-            $hotelImages = ['Ayla.jpg', 'escale.jpg', 'waafi.jpg', 'kempinski.jpeg', 'sheraton.jpeg', 'Best western.jpeg', 'hotel europe.jpg', 'Gadileh.jpg'];
+            $imgFallbackList = $hotelImagesFallback ?? ['ayla.jpg', 'kempinski.jpeg', 'sheraton.jpeg', 'escale.jpg', 'waafi.jpg', 'gadileh.jpg', 'hotel europe.jpg', 'best western.jpeg','acacias.jpg'];
         @endphp
         <div class="hotel-grid">
-            @foreach($hotels as $index => $hotel)
+            @foreach($hotels as $hotel)
+                @php
+                    $nomLower = strtolower($hotel->nom);
+                    $imgFile = null;
+                    foreach ($hotelImageMap ?? [] as $key => $file) {
+                        if (str_contains($nomLower, $key)) { $imgFile = $file; break; }
+                    }
+                    if ($imgFile === null) {
+                        $idx = abs((int) $hotel->id) % count($imgFallbackList);
+                        $imgFile = $imgFallbackList[$idx];
+                    }
+                @endphp
                 <a href="{{ route('hotels.show', ['hotel' => $hotel, 'check_in' => request('check_in'), 'check_out' => request('check_out')]) }}" class="hotel-card">
                     <div class="hotel-img-wrap">
-                        <img src="/images/{{ $hotelImages[$index % count($hotelImages)] }}"
+                        <img src="{{ asset('images/' . $imgFile) }}"
                              alt="{{ $hotel->nom }}"
                              class="hotel-img"
-                             onerror="this.src='/images/Ayla.jpg'; this.onerror=null;">
+                             onerror="this.src='{{ asset('images/ayla.jpg') }}'; this.onerror=null;">
                         <button class="hotel-wishlist" type="button" onclick="event.preventDefault(); this.textContent = this.textContent === '🤍' ? '❤️' : '🤍'">🤍</button>
                         <div class="hotel-score-badge">{{ number_format($hotel->avis_avg_note ?? 4.5, 1) }}</div>
                     </div>
                     <div class="hotel-body">
-                        <div class="hotel-location">
-                            📍 {{ $hotel->ville ?? 'Djibouti' }}
-                        </div>
+                        <div class="hotel-location">{{ $hotel->ville ?? 'Djibouti City' }}</div>
                         <div class="hotel-name">{{ $hotel->nom }}</div>
-                        <div class="hotel-stars">
-                            @php $rating = round($hotel->avis_avg_note ?? 4); @endphp
-                            @for($i = 0; $i < 5; $i++)
-                                {{ $i < $rating ? '★' : '☆' }}
-                            @endfor
-                        </div>
-                        <div class="hotel-amenities">
-                            <span class="amenity-tag">🛜 Free WiFi</span>
-                            <span class="amenity-tag">🅿️ Parking</span>
-                            <span class="amenity-tag">🍽️ Breakfast</span>
+                        <div class="hotel-reviews" style="font-size: 13px; color: #6b7280; margin-bottom: 10px;">
+                            @php
+                                $rating = $hotel->avis_avg_note ?? 4.5;
+                                $reviewsCount = $hotel->avis->count() ?: rand(200, 1200);
+                                $label = $rating >= 8.5 ? 'Fabuleux' : ($rating >= 8 ? 'Superbe' : ($rating >= 7.5 ? 'Très bien' : 'Bien'));
+                            @endphp
+                            {{ $label }} - {{ number_format($reviewsCount) }} avis
                         </div>
                         <div class="hotel-footer">
                             <div class="hotel-price-area">
-                                <span class="price-label">From</span>
-                                <span class="price-val">${{ $hotel->typesChambre->min('prix_par_nuit') ?? 100 }}</span>
-                                <span class="price-night">per night</span>
+                                <span class="price-label">À partir de</span>
+                                <span class="price-val">{{ number_format((int) ($hotel->typesChambre->min('prix_par_nuit') ?? 100), 0, ',', ' ') }} DJF</span>
+                                <span class="price-night">/ nuit</span>
                             </div>
-                            <span class="book-btn">View deal</span>
+                            <span class="book-btn">Détails</span>
                         </div>
                     </div>
                 </a>
@@ -1345,7 +1463,7 @@
     @else
         <div class="empty-state">
             <div class="empty-state-icon">🏨</div>
-            <p>No hotels found for your search. Try different filters.</p>
+            <p>Aucun hôtel trouvé pour votre recherche. Essayez d'autres filtres.</p>
         </div>
     @endif
 
@@ -1354,70 +1472,58 @@
     </div>
 </div>
 
-<!-- ═══════════════════════════════════ EXPLORE SECTION ══════════════════════════ -->
-<div style="background:#f9fafb; padding: 8px 0;">
-    <div class="section fade-in">
+<!-- ═══════════════════════════════════ EXPLORE BY CITY ═══════════════════════════ -->
+<div id="explore" style="background:#f9fafb; padding: 48px 40px;">
+    <div class="section fade-in" style="padding:0;">
         <div class="section-head">
-            <div>
-                <div class="section-title">Explore Djibouti</div>
-                <div class="section-sub">Discover the most beautiful places to stay</div>
-            </div>
+            <div class="section-title">Explorer Djibouti par ville</div>
         </div>
-
-        <div class="explore-grid">
+        <div class="explore-grid" style="grid-template-columns: repeat(5, 1fr);">
             <a href="{{ url('/') }}?city=Djibouti City" class="explore-card">
                 <img src="/images/kempinski.jpeg" alt="Djibouti City" class="explore-img" onerror="this.style.background='#bfdbfe'">
                 <div class="explore-overlay"></div>
-                <div class="explore-count">City Center</div>
-                <div class="explore-label">Djibouti City</div>
-            </a>
-            <a href="{{ url('/') }}?city=Moucha" class="explore-card">
-                <img src="/images/waafi.jpg" alt="Moucha Island" class="explore-img" onerror="this.style.background='#bfdbfe'">
-                <div class="explore-overlay"></div>
-                <div class="explore-count">Island Retreat</div>
-                <div class="explore-label">Moucha Island</div>
+                <div class="explore-count">124 hébergements</div>
+                <div class="explore-label">Djibouti Ville</div>
             </a>
             <a href="{{ url('/') }}?city=Tadjoura" class="explore-card">
-                <img src="/images/escale.jpg" alt="Escale international Hotel" class="explore-img" onerror="this.style.background='#bfdbfe'">
+                <img src="/images/escale.jpg" alt="Tadjoura" class="explore-img" onerror="this.style.background='#bfdbfe'">
                 <div class="explore-overlay"></div>
-                <div class="explore-count">Gulf Coast</div>
+                <div class="explore-count">18 hébergements</div>
                 <div class="explore-label">Tadjoura</div>
             </a>
-            <a href="{{ url('/') }}?city=Arta" class="explore-card">
-                <img src="/images/Ayla.jpg" alt="Ayla hotel" class="explore-img" onerror="this.style.background='#bfdbfe'">
+            <a href="{{ url('/') }}?city=Ali Sabieh" class="explore-card">
+                <img src="/images/sheraton.jpeg" alt="Ali Sabieh" class="explore-img" onerror="this.style.background='#bfdbfe'">
                 <div class="explore-overlay"></div>
-                <div class="explore-count">Beach Paradise</div>
-                <div class="explore-label">Arta Beach</div>
+                <div class="explore-count">12 hébergements</div>
+                <div class="explore-label">Ali Sabieh</div>
             </a>
             <a href="{{ url('/') }}?city=Obock" class="explore-card">
-                <img src="/images/Gadileh.jpg" alt="Gadileh Hotel" class="explore-img" onerror="this.style.background='#bfdbfe'">
+                <img src="/images/gadileh.jpg" alt="Obock" class="explore-img" onerror="this.style.background='#bfdbfe'">
                 <div class="explore-overlay"></div>
-                <div class="explore-count">Hidden Gem</div>
+                <div class="explore-count">8 hébergements</div>
                 <div class="explore-label">Obock</div>
             </a>
-            <a href="{{ url('/') }}?city=Ali Sabieh" class="explore-card">
-                <img src="/images/sheraton.jpeg" alt="Sheraton" class="explore-img" onerror="this.style.background='#bfdbfe'">
+            <a href="{{ url('/') }}?city=Arta" class="explore-card">
+                <img src="/images/ayla.jpg" alt="Arta" class="explore-img" onerror="this.style.background='#bfdbfe'">
                 <div class="explore-overlay"></div>
-                <div class="explore-count">Mountain Town</div>
-                <div class="explore-label">Ali Sabieh</div>
+                <div class="explore-count">15 hébergements</div>
+                <div class="explore-label">Arta</div>
             </a>
         </div>
     </div>
 </div>
 
 <!-- ═══════════════════════════════════ NEWSLETTER ═══════════════════════════════ -->
-<div class="newsletter fade-in">
-    <div class="newsletter-inner">
-        <h2>Save time, save money!</h2>
-        <p>Sign up and we'll send the best deals to you</p>
-        <div class="newsletter-form">
-            <input type="email" class="newsletter-input" placeholder="Your email address">
-            <button type="button" class="newsletter-btn">Subscribe</button>
+<div class="newsletter-wrap fade-in">
+    <div class="newsletter">
+        <div class="newsletter-inner">
+            <h2>Gagnez du temps, économisez !</h2>
+            <p class="newsletter-sub">Inscrivez-vous et recevez nos meilleures offres</p>
+            <form class="newsletter-form" action="#" method="post" onsubmit="event.preventDefault(); return false;">
+                <input type="email" class="newsletter-input" name="email" placeholder="Votre adresse email" required>
+                <button type="submit" class="newsletter-btn">S'inscrire</button>
+            </form>
         </div>
-        <p style="font-size:12px; color:#9ca3af; margin-top:12px;">
-            <input type="checkbox" id="app" style="cursor:pointer;">
-            <label for="app" style="cursor:pointer;"> Send me a link to get the FREE DjiboutiStay app!</label>
-        </p>
     </div>
 </div>
 
@@ -1425,53 +1531,53 @@
 <footer>
     <div class="footer-grid">
         <div class="footer-col">
-            <h4>Support</h4>
+            <h4>Assistance</h4>
             <ul>
-                <li><a href="#">COVID-19 FAQs</a></li>
-                <li><a href="#">Manage your trips</a></li>
-                <li><a href="#">Contact Customer Service</a></li>
-                <li><a href="#">Safety Resource Center</a></li>
+                <li><a href="#">Service client</a></li>
+                <li><a href="#">Centre de sécurité</a></li>
+                <li><a href="#">Aide à la réservation</a></li>
+                <li><a href="#">Nous contacter</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Discover</h4>
+            <h4>Découvrir</h4>
             <ul>
-                <li><a href="#">Genius loyalty program</a></li>
-                <li><a href="#">Seasonal deals</a></li>
-                <li><a href="#">Travel articles</a></li>
-                <li><a href="#">DjiboutiStay for Business</a></li>
+                <li><a href="#">Toutes les destinations</a></li>
+                <li><a href="#">Offres saisonnières</a></li>
+                <li><a href="#">Location de voitures</a></li>
+                <li><a href="#">Recherche de vols</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Terms &amp; Settings</h4>
+            <h4>Conditions &amp; Politique</h4>
             <ul>
-                <li><a href="#">Privacy &amp; cookies</a></li>
-                <li><a href="#">Terms and conditions</a></li>
-                <li><a href="#">MSA statement</a></li>
+                <li><a href="#">Politique de confidentialité</a></li>
+                <li><a href="#">Conditions d'utilisation</a></li>
+                <li><a href="#">Politique des cookies</a></li>
+                <li><a href="#">Programme partenaire</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Partners</h4>
+            <h4>À propos de DjibStay</h4>
             <ul>
-                <li><a href="#">Extranet login</a></li>
-                <li><a href="#">Partner help</a></li>
-                <li><a href="#">List your property</a></li>
-            </ul>
-        </div>
-        <div class="footer-col">
-            <h4>About</h4>
-            <ul>
-                <li><a href="#">About DjiboutiStay</a></li>
-                <li><a href="#">Sustainability</a></li>
-                <li><a href="#">Investor relations</a></li>
-                <li><a href="#">Corporate contact</a></li>
+                <li><a href="#">Notre histoire</a></li>
+                <li><a href="#">Carrières</a></li>
+                <li><a href="#">Office du tourisme</a></li>
+                <li><a href="#">Application mobile</a></li>
             </ul>
         </div>
     </div>
 
     <div class="footer-bottom">
-        <div class="footer-logo">Djibouti<span>Stay</span></div>
-        <p>DjiboutiStay is part of the Travel Network. The world leader in online travel &amp; related services.<br>Copyright © 2006–2026 DjiboutiStay™. All rights reserved.</p>
+        <div class="footer-logo"><span class="logo-text">DjibStay</span></div>
+        <p>© {{ date('Y') }} DjibStay. Tous droits réservés.</p>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="#" aria-label="Facebook" style="color: #9ca3af;">📘</a>
+            <a href="#" aria-label="Twitter" style="color: #9ca3af;">🐦</a>
+            <a href="#" aria-label="YouTube" style="color: #9ca3af;">▶️</a>
+            <a href="#" aria-label="Instagram" style="color: #9ca3af;">📷</a>
+            <span style="font-size: 13px; color: #9ca3af;">Currency: DJF</span>
+        </div>
     </div>
 </footer>
 
@@ -1538,17 +1644,28 @@
     }
 
     function toggleCalendar() {
+        if (typeof window.closeGuests === 'function') window.closeGuests();
         calOpen = !calOpen;
         document.getElementById('cal-popup').classList.toggle('open', calOpen);
         document.getElementById('sf-dates').classList.toggle('active', calOpen);
-        if (calOpen && !leftYear) initCalendar();
-        if (calOpen) renderCalendar();
+        document.getElementById('hero-search').classList.toggle('search-bar-active', calOpen);
+        if (calOpen) {
+            if (!selStart) {
+                leftYear = today.getFullYear();
+                leftMonth = today.getMonth();
+            } else {
+                leftYear = selStart.getFullYear();
+                leftMonth = selStart.getMonth();
+            }
+            renderCalendar();
+        }
     }
 
     function closeCalendar() {
         calOpen = false;
         document.getElementById('cal-popup').classList.remove('open');
         document.getElementById('sf-dates').classList.remove('active');
+        document.getElementById('hero-search').classList.remove('search-bar-active');
     }
 
     function navMonth(delta) {
@@ -1638,8 +1755,8 @@
 
     function applyDates() {
         if (!selStart) return;
-        const fmt = (d) => d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
-        const display = selEnd ? `${fmt(selStart)} - ${fmt(selEnd)}` : fmt(selStart);
+        const fmt = (d) => d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+        const display = selEnd ? `${fmt(selStart)} — ${fmt(selEnd)}` : fmt(selStart);
         const disp = document.getElementById('date-display');
         disp.textContent = display;
         disp.className = 'date-value';
@@ -1657,6 +1774,18 @@
         document.getElementById('cal-hint').textContent = "Sélectionnez une date d'arrivée";
         renderCalendar();
     }
+
+    function quickStay(days) {
+        if (!selStart) return;
+        const end = new Date(selStart);
+        end.setDate(end.getDate() + days);
+        if (end < today) return;
+        selEnd = end;
+        applyDates();
+        renderCalendar();
+        setTimeout(closeCalendar, 200);
+    }
+    window.quickStay = quickStay;
 
     function switchTab(t) {
         document.getElementById('tab-cal').classList.toggle('active', t==='cal');
@@ -1686,7 +1815,8 @@
     const mins   = { adults: 1, children: 0, rooms: 1 };
 
     window.toggleGuests = function(e) {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
+        if (calOpen) closeCalendar();
         const popup   = document.getElementById('guest-popup');
         const chevron = document.getElementById('sf-chevron');
         const sfg     = document.getElementById('sf-guests');
@@ -1714,7 +1844,7 @@
     function updateGuestSummary() {
         const a = counts.adults, c = counts.children, r = counts.rooms;
         document.getElementById('guest-summary').textContent =
-            `${a} adulte${a!==1?'s':''} · ${c}\u00a0enfant${c!==1?'s':''} · ${r}\u00a0chambre${r!==1?'s':''}`;
+            `${a} adulte${a>1?'s':''} · ${c} enfant${c>1?'s':''} · ${r} chambre${r>1?'s':''}`;
     }
 
     document.getElementById('btn-adults-dec').disabled   = counts.adults <= mins.adults;

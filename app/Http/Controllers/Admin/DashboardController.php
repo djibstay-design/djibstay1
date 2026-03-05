@@ -129,6 +129,39 @@ class DashboardController extends Controller
 
         $hotels = $hotelsQuery->withCount(['typesChambre', 'avis'])->get();
 
+        // Réservations par statut
+        $reservationsByStatus = [
+            'CONFIRMEE' => (clone $reservationsQuery)->where('statut', 'CONFIRMEE')->count(),
+            'EN_ATTENTE' => (clone $reservationsQuery)->where('statut', 'EN_ATTENTE')->count(),
+            'ANNULEE' => (clone $reservationsQuery)->where('statut', 'ANNULEE')->count(),
+        ];
+
+        // Prochains check-in (7 jours)
+        $upcomingCheckins = (clone $reservationsQuery)->with('chambre.typeChambre.hotel')
+            ->where('statut', 'CONFIRMEE')
+            ->whereDate('date_debut', '>=', $today)
+            ->whereDate('date_debut', '<=', $today->copy()->addDays(7))
+            ->orderBy('date_debut')
+            ->take(8)
+            ->get();
+
+        // Performance par hôtel (revenus, nb réservations)
+        $hotelsPerformance = $hotelsQuery->withCount(['typesChambre', 'avis'])
+            ->get()
+            ->map(function ($h) use ($reservationsQuery) {
+                $rev = (clone $reservationsQuery)->whereHas('chambre.typeChambre', fn ($q) => $q->where('hotel_id', $h->id))
+                    ->where('statut', 'CONFIRMEE')->sum('montant_total');
+                $nbRes = (clone $reservationsQuery)->whereHas('chambre.typeChambre', fn ($q) => $q->where('hotel_id', $h->id))->count();
+                return [
+                    'hotel' => $h,
+                    'revenue' => $rev,
+                    'reservations_count' => $nbRes,
+                ];
+            })
+            ->sortByDesc('revenue')
+            ->take(5)
+            ->values();
+
         return view('admin.dashboard', [
             'hotels' => $hotels,
             'totalRevenue' => $totalRevenue,
@@ -155,6 +188,9 @@ class DashboardController extends Controller
             'reviewsCount' => $reviewsCount,
             'recentActivity' => $recentActivity,
             'bookingList' => $bookingList,
+            'reservationsByStatus' => $reservationsByStatus,
+            'upcomingCheckins' => $upcomingCheckins,
+            'hotelsPerformance' => $hotelsPerformance,
         ]);
     }
 }
