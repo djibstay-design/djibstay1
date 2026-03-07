@@ -34,4 +34,9 @@ class TypeChambre extends Model
     {
         return $this->hasMany(Chambre::class, 'type_id');
     }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class, 'type_chambre_id')->orderBy('sort_order');
+    }
 }

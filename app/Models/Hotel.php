@@ -14,11 +14,17 @@ class Hotel extends Model
         'ville',
         'description',
         'user_id',
+        'admin_id',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 
     public function typesChambre(): HasMany
@@ -29,5 +35,15 @@ class Hotel extends Model
     public function avis(): HasMany
     {
         return $this->hasMany(Avis::class, 'hotel_id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(HotelImage::class)->orderBy('sort_order');
+    }
+
+    public function mainImage(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(HotelImage::class)->where('is_main', true)->latest();
     }
 }

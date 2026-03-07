@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AvisController as AdminAvisController;
 use App\Http\Controllers\Admin\ChambreController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HotelController as AdminHotelController;
+use App\Http\Controllers\Admin\HotelHotelImageController;
+use App\Http\Controllers\Admin\HotelImageController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\TypeChambreController;
 use App\Http\Controllers\Admin\UserController;
@@ -36,8 +38,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('superadmin')->resource('users', UserController::class)->parameters(['users' => 'user']);
 
     Route::resource('hotels', AdminHotelController::class)->except(['show']);
+    Route::get('hotels/{hotel}/images', [HotelHotelImageController::class, 'index'])->name('hotels.images.index');
+    Route::post('hotels/{hotel}/images', [HotelHotelImageController::class, 'store'])->name('hotels.images.store');
+    Route::patch('hotels/{hotel}/images/{image}/main', [HotelHotelImageController::class, 'setMain'])->name('hotels.images.set-main');
+    Route::delete('hotels/{hotel}/images/{image}', [HotelHotelImageController::class, 'destroy'])->name('hotels.images.destroy');
+    Route::resource('images', HotelImageController::class)->except(['show'])->parameters(['images' => 'image']);
     Route::resource('types-chambre', TypeChambreController::class)->parameters(['types-chambre' => 'typeChambre']);
     Route::resource('chambres', ChambreController::class)->parameters(['chambres' => 'chambre']);
     Route::resource('reservations', AdminReservationController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->parameters(['reservations' => 'reservation']);
     Route::get('avis', [AdminAvisController::class, 'index'])->name('avis.index');
+    Route::post('avis/{avi}/reponse', [AdminAvisController::class, 'repondre'])->name('avis.repondre');
 });

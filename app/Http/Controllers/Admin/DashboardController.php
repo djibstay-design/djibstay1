@@ -18,20 +18,22 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = Carbon::today();
 
+        $userId = $user->id;
+
         $reservationsQuery = Reservation::query()->with('chambre.typeChambre.hotel');
         if ($user->role !== 'SUPER_ADMIN') {
-            $reservationsQuery->whereHas('chambre.typeChambre.hotel', fn ($q) => $q->where('user_id', $user->id));
+            $reservationsQuery->whereHas('chambre.typeChambre.hotel', fn ($q) => $q->where('user_id', $userId)->orWhere('admin_id', $userId));
         }
 
-        $chambresQuery = Chambre::query()->whereHas('typeChambre.hotel', function ($q) use ($user) {
+        $chambresQuery = Chambre::query()->whereHas('typeChambre.hotel', function ($q) use ($user, $userId) {
             if ($user->role !== 'SUPER_ADMIN') {
-                $q->where('user_id', $user->id);
+                $q->where('user_id', $userId)->orWhere('admin_id', $userId);
             }
         });
 
         $hotelsQuery = $user->role === 'SUPER_ADMIN'
             ? Hotel::query()
-            : Hotel::where('user_id', $user->id);
+            : Hotel::where(fn ($q) => $q->where('user_id', $userId)->orWhere('admin_id', $userId));
 
         // KPIs
         $totalRevenue = (clone $reservationsQuery)->where('statut', 'CONFIRMEE')->sum('montant_total');
@@ -105,9 +107,9 @@ class DashboardController extends Controller
         $occupancyPercent = $totalRooms > 0 ? round(($occupied / $totalRooms) * 100) : 0;
 
         // Overall ratings
-        $avisQuery = Avis::query()->whereHas('hotel', function ($q) use ($user) {
+        $avisQuery = Avis::query()->whereHas('hotel', function ($q) use ($user, $userId) {
             if ($user->role !== 'SUPER_ADMIN') {
-                $q->where('user_id', $user->id);
+                $q->where('user_id', $userId)->orWhere('admin_id', $userId);
             }
         });
         $avgRating = (float) $avisQuery->avg('note') ?: 0;

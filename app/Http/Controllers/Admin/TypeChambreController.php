@@ -16,9 +16,16 @@ class TypeChambreController extends Controller
         $user = $request->user();
         $query = TypeChambre::with('hotel');
         if ($user->role !== 'SUPER_ADMIN') {
-            $query->whereHas('hotel', fn ($q) => $q->where('user_id', $user->id));
+            $query->whereHas('hotel', fn ($q) => $q->where('user_id', $user->id)->orWhere('admin_id', $user->id));
         }
-        $typesChambre = $query->latest()->paginate(10);
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($qry) use ($q) {
+                $qry->where('nom_type', 'like', "%{$q}%")
+                    ->orWhereHas('hotel', fn ($h) => $h->where('nom', 'like', "%{$q}%"));
+            });
+        }
+        $typesChambre = $query->latest()->paginate(10)->withQueryString();
         return view('admin.types-chambre.index', compact('typesChambre'));
     }
 
@@ -86,14 +93,16 @@ class TypeChambreController extends Controller
 
     private function getHotelsForUser(Request $request)
     {
+        $userId = $request->user()->id;
         return $request->user()->role === 'SUPER_ADMIN'
             ? Hotel::orderBy('nom')->get()
-            : Hotel::where('user_id', $request->user()->id)->orderBy('nom')->get();
+            : Hotel::where(fn ($q) => $q->where('user_id', $userId)->orWhere('admin_id', $userId))->orderBy('nom')->get();
     }
 
     private function authorizeTypeChambre(Request $request, TypeChambre $typeChambre): void
     {
-        if ($request->user()->role !== 'SUPER_ADMIN' && $typeChambre->hotel->user_id !== $request->user()->id) {
+        $userId = $request->user()->id;
+        if ($request->user()->role !== 'SUPER_ADMIN' && $typeChambre->hotel->user_id !== $userId && $typeChambre->hotel->admin_id !== $userId) {
             abort(403);
         }
     }

@@ -152,13 +152,13 @@
         .hero {
             position: relative;
             min-height: 520px;
+            z-index: 30;
             background: var(--blue);
             overflow: visible;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             padding-bottom: 60px;
-            z-index: 30;
         }
 
         .hero-bg {
@@ -1333,7 +1333,7 @@
 </div>
 
 <!-- ═══════════════════════════════════ SPECIAL DEALS (cliquable, au-dessus du hero) ── -->
-<div id="deals" style="background:#f9fafb; padding: 48px 40px; position: relative; z-index: 40; pointer-events: auto;">
+<div id="deals" style="background:#f9fafb; padding: 48px 40px; position: relative; z-index: 5; pointer-events: auto;">
     <div class="section fade-in" style="padding:0;">
         <div class="section-head">
             <div class="section-title">Offres Spéciales</div>

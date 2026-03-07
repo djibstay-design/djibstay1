@@ -41,6 +41,6 @@
         <input type="password" name="password_confirmation" id="password_confirmation" required
             class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">
     </div>
-    <button type="submit" class="px-4 py-2 bg-[#1b1b18] dark:bg-[#EDEDEC] text-white dark:text-[#1b1b18] rounded font-medium">Créer</button>
+    <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors">Créer</button>
 </form>
 @endsection

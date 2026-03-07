@@ -51,6 +51,27 @@ class WelcomeController extends Controller
             'avg_rating' => (float) Hotel::withAvg('avis', 'note')->get()->avg(fn ($h) => $h->avis_avg_note) ?: 4.8,
         ];
 
-        return view('welcome', compact('hotels', 'stats'));
+        // Map hotel name (or part of) to image file in public/images — order matters (first match wins)
+        $hotelImageMap = [
+            'sheraton' => 'sheraton.jpeg',
+            'kempinski' => 'kempinski.jpeg',
+            'ayla' => 'ayla.jpg',
+            'les sables' => 'ayla.jpg',
+            'sables blancs' => 'ayla.jpg',
+            'escale' => 'escale.jpg',
+            'waafi' => 'waafi.jpg',
+            'waaf' => 'waafi.jpg',
+            'best western' => 'best western.jpeg',
+            'atlantic' => 'best western.jpeg',
+            'europe' => 'hotel europe.jpg',
+            'gadileh' => 'gadileh.jpg',
+            'accacia' => 'accacia-hotel.jpg',
+            'acacias' => 'accacia-hotel.jpg',
+        ];
+
+        // Fallback list: each hotel without a name match gets a different image (by id)
+        $hotelImagesFallback = ['ayla.jpg', 'kempinski.jpeg', 'sheraton.jpeg', 'escale.jpg', 'waafi.jpg', 'gadileh.jpg', 'hotel europe.jpg', 'best western.jpeg'];
+
+        return view('welcome', compact('hotels', 'stats', 'hotelImageMap', 'hotelImagesFallback'));
     }
 }

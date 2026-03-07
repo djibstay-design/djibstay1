@@ -27,7 +27,7 @@
             class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">
     </div>
     <div>
-        <label for="prix_par_nuit" class="block text-sm font-medium mb-1">Prix par nuit (FCFA) *</label>
+        <label for="prix_par_nuit" class="block text-sm font-medium mb-1">Prix par nuit (DJF) *</label>
         <input type="number" name="prix_par_nuit" id="prix_par_nuit" required min="0" step="0.01" value="{{ old('prix_par_nuit', $typeChambre->prix_par_nuit) }}"
             class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">
     </div>
@@ -35,6 +35,6 @@
         <label for="description" class="block text-sm font-medium mb-1">Description</label>
         <textarea name="description" id="description" rows="3" class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">{{ old('description', $typeChambre->description) }}</textarea>
     </div>
-    <button type="submit" class="px-4 py-2 bg-[#1b1b18] dark:bg-[#EDEDEC] text-white dark:text-[#1b1b18] rounded font-medium">Enregistrer</button>
+    <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors">Enregistrer</button>
 </form>
 @endsection

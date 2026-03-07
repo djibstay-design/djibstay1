@@ -17,9 +17,20 @@ class ReservationController extends Controller
         $user = $request->user();
         $query = Reservation::with(['chambre.typeChambre.hotel']);
         if ($user->role !== 'SUPER_ADMIN') {
-            $query->whereHas('chambre.typeChambre.hotel', fn ($q) => $q->where('user_id', $user->id));
+            $query->whereHas('chambre.typeChambre.hotel', fn ($q) => $q->where('user_id', $user->id)->orWhere('admin_id', $user->id));
         }
-        $reservations = $query->latest('date_reservation')->paginate(15);
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where(function ($qry) use ($q) {
+                $qry->where('code_reservation', 'like', "%{$q}%")
+                    ->orWhere('nom_client', 'like', "%{$q}%")
+                    ->orWhere('prenom_client', 'like', "%{$q}%");
+            });
+        }
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+        $reservations = $query->latest('date_reservation')->paginate(15)->withQueryString();
         return view('admin.reservations.index', compact('reservations'));
     }
 
@@ -63,7 +74,9 @@ class ReservationController extends Controller
 
     private function authorizeReservation(Request $request, Reservation $reservation): void
     {
-        if ($request->user()->role !== 'SUPER_ADMIN' && $reservation->chambre->typeChambre->hotel->user_id !== $request->user()->id) {
+        $userId = $request->user()->id;
+        $hotel = $reservation->chambre->typeChambre->hotel;
+        if ($request->user()->role !== 'SUPER_ADMIN' && $hotel->user_id !== $userId && $hotel->admin_id !== $userId) {
             abort(403);
         }
     }

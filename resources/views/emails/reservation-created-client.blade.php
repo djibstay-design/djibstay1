@@ -17,7 +17,7 @@
         <li><strong>Chambre :</strong> {{ $reservation->chambre->numero }} ({{ $reservation->chambre->typeChambre->nom_type }})</li>
         <li><strong>Arrivée :</strong> {{ $reservation->date_debut->format('d/m/Y') }}</li>
         <li><strong>Départ :</strong> {{ $reservation->date_fin->format('d/m/Y') }}</li>
-        <li><strong>Montant total :</strong> {{ number_format($reservation->montant_total, 0, ',', ' ') }} FCFA</li>
+        <li><strong>Montant total :</strong> {{ number_format($reservation->montant_total, 0, ',', ' ') }} DJF</li>
         <li><strong>Statut :</strong> En attente de confirmation</li>
     </ul>
 

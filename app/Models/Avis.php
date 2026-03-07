@@ -16,17 +16,26 @@ class Avis extends Model
         'commentaire',
         'date_avis',
         'hotel_id',
+        'reponse_admin',
+        'reponse_admin_at',
+        'reponse_admin_user_id',
     ];
 
     protected function casts(): array
     {
         return [
             'date_avis' => 'date',
+            'reponse_admin_at' => 'datetime',
         ];
     }
 
     public function hotel(): BelongsTo
     {
         return $this->belongsTo(Hotel::class);
+    }
+
+    public function reponseAdminUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reponse_admin_user_id');
     }
 }

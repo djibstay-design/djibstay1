@@ -16,6 +16,6 @@
             <option value="ANNULEE" {{ old('statut', $reservation->statut) === 'ANNULEE' ? 'selected' : '' }}>Annulée</option>
         </select>
     </div>
-    <button type="submit" class="mt-4 px-4 py-2 bg-[#1b1b18] dark:bg-[#EDEDEC] text-white dark:text-[#1b1b18] rounded font-medium">Enregistrer</button>
+    <button type="submit" class="mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition-colors">Enregistrer</button>
 </form>
 @endsection
