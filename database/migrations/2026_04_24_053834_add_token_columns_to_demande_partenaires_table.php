@@ -7,11 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::table('demande_partenaires', function (Blueprint $table) {
-            $table->string('token_invitation')->nullable()->unique()->after('formulaire_rempli');
-            $table->timestamp('invitation_envoyee_le')->nullable()->after('token_invitation');
-            $table->timestamp('token_expire_le')->nullable()->after('invitation_envoyee_le');
-            $table->unsignedBigInteger('traite_par')->nullable()->after('token_expire_le');
-            $table->text('notes_admin')->nullable()->after('traite_par');
+            if (!Schema::hasColumn('demande_partenaires', 'token_invitation')) {
+                $table->string('token_invitation')->nullable()->unique()->after('formulaire_rempli');
+            }
+            if (!Schema::hasColumn('demande_partenaires', 'invitation_envoyee_le')) {
+                $table->timestamp('invitation_envoyee_le')->nullable()->after('token_invitation');
+            }
+            if (!Schema::hasColumn('demande_partenaires', 'token_expire_le')) {
+                $table->timestamp('token_expire_le')->nullable()->after('invitation_envoyee_le');
+            }
+            if (!Schema::hasColumn('demande_partenaires', 'traite_par')) {
+                $table->unsignedBigInteger('traite_par')->nullable()->after('token_expire_le');
+            }
+            if (!Schema::hasColumn('demande_partenaires', 'notes_admin')) {
+                $table->text('notes_admin')->nullable()->after('traite_par');
+            }
         });
     }
 
