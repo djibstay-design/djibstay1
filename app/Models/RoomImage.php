@@ -26,6 +26,9 @@ class RoomImage extends Model
         if (str_starts_with($this->path, 'http') || str_starts_with($this->path, '/')) {
             return $this->path;
         }
+        if (str_starts_with($this->path, 'images/')) {
+            return asset($this->path);
+        }
         return asset('storage/' . ltrim($this->path, '/'));
     }
 }

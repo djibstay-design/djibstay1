@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification de Disponibilité - Réservation d'Hôtel</title>
+    <link rel="stylesheet" href="AVAILABILITY_STYLES.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .control-group input,
+        .control-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-check {
+            align-self: flex-end;
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .availability-result {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .availability-result.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .result-icon {
+            font-size: 32px;
+        }
+
+        .result-text h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .result-text p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .result-available {
+            color: #4CAF50;
+        }
+
+        .result-unavailable {
+            color: #f44336;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .calendar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #c62828;
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .reservation-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .reservation-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+        }
+
+        .reservation-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-group {
+                min-width: 100%;
+            }
+
+            .btn-check {
+                align-self: stretch;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏨 Réservez votre chambre</h1>
+            <p>Vérifiez la disponibilité et réservez en quelques clics</p>
+        </div>
+
+        <!-- Formulaire de recherche -->
+        <div class="controls">
+            <div class="control-group">
+                <label for="roomType">Type de chambre</label>
+                <select id="roomType">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="1">Suite Prestige</option>
+                    <option value="2">Chambre Deluxe</option>
+                    <option value="3">Chambre Standard</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="checkIn">Arrivée</label>
+                <input type="date" id="checkIn">
+            </div>
+
+            <div class="control-group">
+                <label for="checkOut">Départ</label>
+                <input type="date" id="checkOut">
+            </div>
+
+            <button class="btn-check" onclick="checkAvailability()">Vérifier</button>
+        </div>
+
+        <!-- Messages d'erreur -->
+        <div id="errorMessage" class="error-message"></div>
+
+        <!-- Chargement -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Recherche en cours...</p>
+        </div>
+
+        <!-- Résultats de disponibilité -->
+        <div id="availabilityResult" class="availability-result">
+            <div class="result-header">
+                <span id="resultIcon" class="result-icon">✅</span>
+                <div class="result-text">
+                    <h3 id="resultTitle">Chambres disponibles!</h3>
+                    <p id="resultSubtitle"></p>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="availableCount">0</div>
+                    <div class="stat-label">Disponibles</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="occupancy">0%</div>
+                    <div class="stat-label">Occupation</div>
+                </div>
+            </div>
+
+            <button class="reservation-button" id="reserveBtn" onclick="proceedToReservation()">
+                Réserver maintenant
+            </button>
+        </div>
+
+        <!-- Calendrier -->
+        <div class="calendar-container" id="calendarContainer" style="display: none;">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #e3f2fd;"></div>
+                    <span>Disponible</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #ffebee;"></div>
+                    <span>Indisponible</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background-color: #c8e6c9;"></div>
+                    <span>Sélectionné</span>
+                </div>
+            </div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="AVAILABILITY_EXAMPLE.js"></script>
+    <script>
+        // Initialiser les dates par défaut
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const threeDay = new Date(today);
+            threeDay.setDate(threeDay.getDate() + 3);
+
+            document.getElementById('checkIn').valueAsDate = tomorrow;
+            document.getElementById('checkOut').valueAsDate = threeDay;
+        });
+
+        // Vérifier la disponibilité
+        async function checkAvailability() {
+            const roomType = document.getElementById('roomType').value;
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+            const errorEl = document.getElementById('errorMessage');
+            const loadingEl = document.getElementById('loading');
+            const resultEl = document.getElementById('availabilityResult');
+
+            // Valider
+            if (!roomType || !checkIn || !checkOut) {
+                errorEl.textContent = 'Veuillez remplir tous les champs';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            // Réinitialiser
+            errorEl.classList.remove('show');
+            loadingEl.classList.add('show');
+            resultEl.classList.remove('show');
+
+            try {
+                const service = new AvailabilityService(
+                    window.location.origin
+                );
+
+                const availability = await service.checkAvailability(
+                    roomType,
+                    checkIn,
+                    checkOut
+                );
+
+                if (!availability) {
+                    throw new Error('Erreur lors de la vérification');
+                }
+
+                // Afficher les résultats
+                const available = availability.available_rooms > 0;
+                const occupancy = Math.round(
+                    (availability.unavailable_rooms / availability.total_rooms) * 100
+                );
+
+                const resultIcon = document.getElementById('resultIcon');
+                const resultTitle = document.getElementById('resultTitle');
+                const resultSubtitle = document.getElementById('resultSubtitle');
+                const availableCount = document.getElementById('availableCount');
+                const totalCount = document.getElementById('totalCount');
+                const occupancyEl = document.getElementById('occupancy');
+                const reserveBtn = document.getElementById('reserveBtn');
+
+                if (available) {
+                    resultIcon.textContent = '✅';
+                    resultTitle.textContent = 'Chambres disponibles!';
+                    resultTitle.className = 'result-available';
+                    resultSubtitle.textContent = `Du ${new Date(checkIn).toLocaleDateString('fr-FR')} au ${new Date(checkOut).toLocaleDateString('fr-FR')}`;
+                    reserveBtn.disabled = false;
+                } else {
+                    resultIcon.textContent = '❌';
+                    resultTitle.textContent = 'Aucune chambre disponible';
+                    resultTitle.className = 'result-unavailable';
+                    resultSubtitle.textContent = 'Essayez d\'autres dates';
+                    reserveBtn.disabled = true;
+                }
+
+                availableCount.textContent = availability.available_rooms;
+                totalCount.textContent = availability.total_rooms;
+                occupancyEl.textContent = occupancy + '%';
+
+                resultEl.classList.add('show');
+
+                // Charger le calendrier
+                await loadCalendar(roomType, checkIn, checkOut);
+            } catch (error) {
+                console.error('Erreur:', error);
+                errorEl.textContent = 'Une erreur s\'est produite. Veuillez réessayer.';
+                errorEl.classList.add('show');
+            } finally {
+                loadingEl.classList.remove('show');
+            }
+        }
+
+        // Charger le calendrier
+        async function loadCalendar(roomTypeId, checkIn, checkOut) {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            const service = new AvailabilityService(window.location.origin);
+            const calendar = await service.getMonthlyCalendar(
+                roomTypeId,
+                service.formatDate(firstDay),
+                service.formatDate(lastDay)
+            );
+
+            if (calendar) {
+                const calendarUI = new ReservationCalendarUI(
+                    roomTypeId,
+                    '#calendar',
+                    window.location.origin
+                );
+                calendarUI.renderCalendarTable(calendar);
+                document.getElementById('calendarContainer').style.display = 'block';
+            }
+        }
+
+        // Procéder à la réservation
+        function proceedToReservation() {
+            const roomType = document.getElementById('roomType').value;
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+
+            // Rediriger vers le formulaire de réservation
+            window.location.href = `/reservation?room=${roomType}&check_in=${checkIn}&check_out=${checkOut}`;
+        }
+    </script>
+</body>
+</html>

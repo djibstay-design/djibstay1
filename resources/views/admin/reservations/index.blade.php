@@ -1,84 +1,226 @@
 @extends('layouts.admin')
-@section('title', 'Réservations')
+@section('page_title', 'Réservations')
+
 @section('content')
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-bold text-slate-900">Réservations</h1>
-    <div class="crud-toolbar">
-        <form method="GET" action="{{ route('admin.reservations.index') }}" class="flex flex-wrap items-center gap-2">
-            <div class="crud-search-wrap">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Code, client..." class="crud-search" autocomplete="off">
-            </div>
-            <select name="statut" class="crud-filter">
-                <option value="">Tous les statuts</option>
-                <option value="CONFIRMEE" {{ request('statut') === 'CONFIRMEE' ? 'selected' : '' }}>Confirmée</option>
-                <option value="EN_ATTENTE" {{ request('statut') === 'EN_ATTENTE' ? 'selected' : '' }}>En attente</option>
-                <option value="ANNULEE" {{ request('statut') === 'ANNULEE' ? 'selected' : '' }}>Annulée</option>
-            </select>
-            <button type="submit" class="crud-btn-submit">Rechercher</button>
-            @if(request()->hasAny(['q','statut']))<a href="{{ route('admin.reservations.index') }}" class="crud-btn-reset">Réinitialiser</a>@endif
-        </form>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div>
+        <h1 style="font-size:22px;font-weight:900;color:#1e293b;margin:0;">📋 Réservations</h1>
+        <p style="font-size:13px;color:#64748b;margin:4px 0 0;">{{ $reservations->total() }} réservation(s) au total</p>
     </div>
 </div>
 
-@if ($reservations->isEmpty())
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center max-w-md mx-auto">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-        <h2 class="text-lg font-semibold text-slate-700 mb-1">Aucune réservation</h2>
-        <p class="text-slate-500 text-sm">Les réservations apparaîtront ici lorsque des clients effectueront une réservation.</p>
+{{-- Stats --}}
+@php
+    $totalRes   = \App\Models\Reservation::count();
+    $confirmees = \App\Models\Reservation::where('statut','CONFIRMEE')->count();
+    $enAttente  = \App\Models\Reservation::where('statut','EN_ATTENTE')->count();
+    $annulees   = \App\Models\Reservation::where('statut','ANNULEE')->count();
+@endphp
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,53,128,0.07);">
+        <div style="font-size:24px;font-weight:900;color:#003580;">{{ $totalRes }}</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;margin-top:3px;">Total</div>
     </div>
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,53,128,0.07);">
+        <div style="font-size:24px;font-weight:900;color:#16a34a;">{{ $confirmees }}</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;margin-top:3px;">✅ Confirmées</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,53,128,0.07);">
+        <div style="font-size:24px;font-weight:900;color:#f59e0b;">{{ $enAttente }}</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;margin-top:3px;">⏳ En attente</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,53,128,0.07);">
+        <div style="font-size:24px;font-weight:900;color:#dc2626;">{{ $annulees }}</div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;margin-top:3px;">❌ Annulées</div>
+    </div>
+</div>
+
+{{-- Filtres --}}
+<div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,53,128,0.06);">
+    <form method="GET" action="{{ route('admin.reservations.index') }}">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ request('q') }}"
+                   placeholder="Code, nom, email..."
+                   style="flex:1;min-width:180px;border:2px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;">
+            <select name="statut"
+                    style="border:2px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#003580;">
+                <option value="">Tous les statuts</option>
+                <option value="EN_ATTENTE" {{ request('statut')==='EN_ATTENTE' ? 'selected':'' }}>⏳ En attente</option>
+                <option value="CONFIRMEE"  {{ request('statut')==='CONFIRMEE'  ? 'selected':'' }}>✅ Confirmées</option>
+                <option value="ANNULEE"    {{ request('statut')==='ANNULEE'    ? 'selected':'' }}>❌ Annulées</option>
+            </select>
+            <button type="submit"
+                    style="background:#003580;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-weight:700;font-size:13px;cursor:pointer;">
+                <i class="bi bi-search"></i> Filtrer
+            </button>
+            @if(request('q') || request('statut'))
+            <a href="{{ route('admin.reservations.index') }}"
+               style="background:#f1f5f9;color:#64748b;border-radius:8px;padding:8px 14px;text-decoration:none;font-size:13px;font-weight:600;">
+                <i class="bi bi-x"></i> Effacer
+            </a>
+            @endif
+        </div>
+    </form>
+</div>
+
+@if($reservations->isEmpty())
+<div style="background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:60px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">📋</div>
+    <h3 style="color:#003580;font-weight:700;">Aucune réservation</h3>
+    <p style="color:#64748b;">Aucune réservation ne correspond à votre recherche.</p>
+</div>
 @else
-    <div class="crud-table-wrap">
-        <div class="overflow-x-auto">
-            <table class="crud-table" style="min-width:700px">
-                <thead>
-                    <tr>
-                        <th>CODE</th>
-                        <th>CLIENT</th>
-                        <th>CHAMBRE / HÔTEL</th>
-                        <th>DATES</th>
-                        <th>STATUT</th>
-                        <th style="text-align:right">ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($reservations as $r)
-                    <tr class="{{ $r->statut === 'EN_ATTENTE' ? 'crud-row-warning' : '' }}">
-                        <td class="font-mono text-xs font-semibold text-slate-800">{{ $r->code_reservation }}</td>
-                        <td class="font-medium text-slate-700">{{ $r->prenom_client }} {{ $r->nom_client }}</td>
-                        <td class="text-slate-600">N°{{ $r->chambre->numero }} — {{ $r->chambre->typeChambre->hotel->nom }}</td>
-                        <td class="text-slate-600">{{ $r->date_debut->format('d/m/Y') }} - {{ $r->date_fin->format('d/m/Y') }}</td>
-                        <td>
-                            @if($r->statut === 'CONFIRMEE')
-                                <span class="crud-badge crud-badge-success">Confirmée</span>
-                            @elseif($r->statut === 'ANNULEE')
-                                <span class="crud-badge crud-badge-danger">Annulée</span>
+<div style="background:#fff;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 2px 12px rgba(0,53,128,0.07);overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr style="background:#f8fafc;">
+                    <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;white-space:nowrap;">Code</th>
+                    <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Client</th>
+                    <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Hôtel / Chambre</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;white-space:nowrap;">Arrivée</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Nuits</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Montant</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Acompte</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Statut</th>
+                    <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($reservations as $res)
+                @php $estExpiree = $res->statut === 'ANNULEE' && $res->date_debut->isPast(); @endphp
+                <tr style="border-bottom:1px solid #f1f5f9;{{ $estExpiree ? 'opacity:0.7;' : '' }}"
+                    onmouseover="this.style.background='#f8fafc'"
+                    onmouseout="this.style.background=''">
+
+                    {{-- Code --}}
+                    <td style="padding:12px 14px;">
+                        <span style="font-family:monospace;font-size:11px;color:{{ $estExpiree ? '#94a3b8' : '#003580' }};font-weight:800;background:{{ $estExpiree ? '#f1f5f9' : '#dbeafe' }};padding:3px 8px;border-radius:5px;">
+                            {{ $res->code_reservation }}
+                        </span>
+                        <div style="font-size:11px;color:#94a3b8;margin-top:3px;">
+                            {{ $res->date_reservation->format('d/m/Y') }}
+                        </div>
+                    </td>
+
+                    {{-- Client --}}
+                    <td style="padding:12px 14px;">
+                        <div style="font-weight:700;color:#1e293b;">{{ $res->prenom_client }} {{ $res->nom_client }}</div>
+                        <div style="font-size:11px;color:#94a3b8;">{{ $res->email_client }}</div>
+                        @if($res->telephone_client)
+                        <div style="font-size:11px;color:#94a3b8;">{{ $res->telephone_client }}</div>
+                        @endif
+                    </td>
+
+                    {{-- Hôtel / Chambre --}}
+                    <td style="padding:12px 14px;">
+                        <div style="font-weight:600;color:#1e293b;font-size:12px;">
+                            {{ $res->chambre->typeChambre->hotel->nom ?? '—' }}
+                        </div>
+                        <div style="font-size:11px;color:#64748b;margin-top:2px;">
+                            {{ $res->chambre->typeChambre->nom_type ?? '—' }}
+                            · N° {{ $res->chambre->numero }}
+                        </div>
+                    </td>
+
+                    {{-- Arrivée --}}
+                    <td style="padding:12px 14px;text-align:center;font-weight:700;color:#003580;white-space:nowrap;">
+                        {{ $res->date_debut->format('d/m/Y') }}
+                        <div style="font-size:11px;color:#94a3b8;font-weight:400;">
+                            → {{ $res->date_fin->format('d/m/Y') }}
+                        </div>
+                    </td>
+
+                    {{-- Nuits --}}
+                    <td style="padding:12px 14px;text-align:center;">
+                        <span style="background:#f1f5f9;color:#475569;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">
+                            {{ $res->date_debut->diffInDays($res->date_fin) }}j
+                        </span>
+                    </td>
+
+                    {{-- Montant --}}
+                    <td style="padding:12px 14px;text-align:center;">
+                        <div style="font-weight:800;color:#003580;font-size:14px;">
+                            {{ number_format($res->montant_total,0,',',' ') }}
+                        </div>
+                        <div style="font-size:10px;color:#94a3b8;">DJF</div>
+                    </td>
+
+                    {{-- Acompte --}}
+                    <td style="padding:12px 14px;text-align:center;">
+                        @if($res->hasPaidDeposit())
+                            <span style="background:#dcfce7;color:#14532d;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ Payé</span>
+                        @else
+                            <span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">⏳ En attente</span>
+                        @endif
+                    </td>
+
+                    {{-- Statut --}}
+                    <td style="padding:12px 14px;text-align:center;">
+                        @if($res->statut === 'CONFIRMEE')
+                            <span style="background:#dcfce7;color:#14532d;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">✅ Confirmée</span>
+                        @elseif($res->statut === 'EN_ATTENTE')
+                            <span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">⏳ En attente</span>
+                        @elseif($estExpiree)
+                            <span style="background:#f3e8ff;color:#6b21a8;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">🕐 Expirée</span>
+                        @else
+                            <span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">❌ Annulée</span>
+                        @endif
+                    </td>
+
+                    {{-- Actions --}}
+                    <td style="padding:12px 14px;">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+
+                            {{-- Voir : toujours disponible --}}
+                            <a href="{{ route('admin.reservations.show', $res) }}"
+                               style="background:#dbeafe;color:#1e40af;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+
+                            {{-- Modifier : grisé si expirée --}}
+                            @if($estExpiree)
+                                <span style="background:#e2e8f0;color:#94a3b8;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:not-allowed;display:inline-flex;align-items:center;gap:3px;">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </span>
                             @else
-                                <span class="crud-badge crud-badge-warning">En attente</span>
+                                <a href="{{ route('admin.reservations.edit', $res) }}"
+                                   style="background:#fef3c7;color:#92400e;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
                             @endif
-                        </td>
-                        <td>
-                            <div class="crud-actions">
-                                <a href="{{ route('admin.reservations.show', $r) }}" title="Voir" class="crud-btn crud-btn-view">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                </a>
-                                <a href="{{ route('admin.reservations.edit', $r) }}" title="Modifier" class="crud-btn crud-btn-edit">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                </a>
-                                <button type="button" title="Supprimer" data-delete-url="{{ route('admin.reservations.destroy', $r) }}" data-delete-label="la réservation {{ $r->code_reservation }}" class="crud-btn crud-btn-delete">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="crud-pagination">{{ $reservations->links() }}</div>
+
+                            {{-- Supprimer : grisé si expirée --}}
+                            @if($estExpiree)
+                                <span style="background:#e2e8f0;color:#94a3b8;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:not-allowed;display:inline-flex;align-items:center;gap:3px;">
+                                    <i class="bi bi-trash"></i>
+                                </span>
+                            @else
+                                <form method="POST" action="{{ route('admin.reservations.destroy', $res) }}"
+                                      onsubmit="return confirm('Supprimer la réservation {{ $res->code_reservation }} ?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            style="background:#fee2e2;color:#991b1b;padding:5px 10px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            @endif
+
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
+</div>
+
+@if($reservations->hasPages())
+<div style="display:flex;justify-content:center;margin-top:24px;">
+    {{ $reservations->links() }}
+</div>
 @endif
+@endif
+
 @endsection

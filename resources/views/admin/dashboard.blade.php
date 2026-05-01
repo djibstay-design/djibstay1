@@ -1,845 +1,656 @@
 @extends('layouts.admin')
-
-@section('title', 'Dashboard')
-
-@section('header')
-<header class="admin-header">
-    <div class="flex items-center gap-4 flex-1">
-        <h1 class="text-xl font-bold text-slate-900 whitespace-nowrap">Dashboard</h1>
-        <div class="relative flex-1 max-w-xl mx-4 hidden sm:block">
-            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" placeholder="Rechercher réservation, chambre..." class="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50/80 text-sm focus:bg-white focus:ring-2 focus:border-slate-300 transition-all placeholder:text-slate-400">
-        </div>
-    </div>
-    <div class="flex items-center gap-3">
-        <button class="relative p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-        </button>
-        <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm" style="background:#2196f3;">
-                {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
-            </div>
-            <div class="hidden sm:block">
-                <p class="font-semibold text-slate-900 text-sm leading-tight">{{ auth()->user()->prenom ?? '' }} {{ auth()->user()->name ?? 'Admin' }}</p>
-                <p class="text-xs text-slate-500">{{ auth()->user()->role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin' }}</p>
-            </div>
-        </div>
-    </div>
-</header>
-@endsection
-
-@php
-    $kpis = [
-        ['label' => 'Revenu total', 'value' => number_format($totalRevenue ?? 0, 0, ',', ' ') . ' DJF', 'change' => $revenueChange ?? 0],
-        ['label' => 'Nv. réservations', 'value' => $newBookings ?? 0, 'change' => $bookingsChange ?? 0],
-        ['label' => 'Check-in', 'value' => $checkInToday ?? 0, 'change' => $checkInChange ?? 0],
-        ['label' => 'Check-out', 'value' => $checkOutToday ?? 0, 'change' => $checkOutChange ?? 0],
-    ];
-
-    $tot = max($totalRooms ?? 1, 1);
-    $occ = $occupied ?? 0;
-    $av = $available ?? 0;
-    $res = $reserved ?? 0;
-    $maint = $notReady ?? 0;
-    $occPct = round($occ/$tot*100);
-
-    $avgR = $avgRating ?? 0;
-    $ratingLabel = $avgR >= 4.5 ? 'Excellent' : ($avgR >= 4 ? 'Très bien' : ($avgR >= 3 ? 'Bien' : ($avgR > 0 ? 'Correct' : '—')));
-    $ratingCategories = [
-        'Propreté'      => min(10, round($avgR * 2 + 0.2, 1)),
-        'Services'      => min(10, round($avgR * 2 + 0.4, 1)),
-        'Emplacement'   => min(10, round($avgR * 2, 1)),
-        'Confort'       => min(10, round($avgR * 2 + 0.1, 1)),
-        'Rapport Q/P'   => min(10, round($avgR * 2 - 0.2, 1)),
-    ];
-
-    $recentReservations = $recentActivity ?? collect();
-    $bookingListData    = $bookingList ?? collect();
-
-    $statusConf  = $reservationsByStatus['CONFIRMEE'] ?? 0;
-    $statusPend  = $reservationsByStatus['EN_ATTENTE'] ?? 0;
-    $statusCanc  = $reservationsByStatus['ANNULEE'] ?? 0;
-    $statusTotal = $statusConf + $statusPend + $statusCanc;
-@endphp
-
-@section('content')
-<div class="dash-layout">
-
-    {{-- ══════════ LEFT COLUMN ══════════ --}}
-    <div class="dash-main flex flex-col gap-8">
-
-        {{-- KPI CARDS --}}
-        <div class="kpi-grid">
-            @foreach($kpis as $kpi)
-            <div class="kpi-card">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="kpi-label">{{ $kpi['label'] }}</span>
-                    <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="4" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="10" cy="16" r="1.3"/></svg>
-                </div>
-                <div class="kpi-value">{{ $kpi['value'] }}</div>
-                <div class="kpi-change">
-                    @if(($kpi['change'] ?? 0) >= 0)
-                        <span class="kpi-up">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-                            {{ number_format(abs($kpi['change']), 1) }}%
-                        </span>
-                    @else
-                        <span class="kpi-down">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            {{ number_format(abs($kpi['change']), 1) }}%
-                        </span>
-                    @endif
-                    <span class="kpi-period">vs sem. dern.</span>
-                </div>
-            </div>
-            @endforeach
-        </div>
-
-        {{-- CHARTS: Guests + Revenue --}}
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="flex items-center justify-between mb-1">
-                    <h3 class="text-sm font-bold text-slate-900">Séjours</h3>
-                    <select class="chart-select">
-                        <option selected>Cette semaine</option>
-                        <option>Ce mois</option>
-                        <option>Cette année</option>
-                    </select>
-                </div>
-                <div class="h-52 mt-2"><canvas id="guestsChart"></canvas></div>
-            </div>
-            <div class="chart-card">
-                <div class="flex items-center justify-between mb-1">
-                    <h3 class="text-sm font-bold text-slate-900">Revenus</h3>
-                    <select class="chart-select">
-                        <option>Cette semaine</option>
-                        <option selected>8 derniers mois</option>
-                        <option>Cette année</option>
-                    </select>
-                </div>
-                <div class="h-52 mt-2"><canvas id="revenueChart"></canvas></div>
-            </div>
-        </div>
-
-        {{-- CHARTS: Bookings Bar + Status Donut --}}
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-slate-900">Réservations</h3>
-                    <select class="chart-select">
-                        <option>Ce mois</option>
-                        <option selected>Cette année</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-4 mb-3 text-[11px]">
-                    <span class="flex items-center gap-1.5 text-slate-500"><span class="w-2 h-2 rounded-sm inline-block" style="background:#2196f3;"></span>Confirmées <b class="text-slate-700 ml-0.5">{{ number_format($totalBooked ?? 0) }}</b></span>
-                    <span class="flex items-center gap-1.5 text-slate-500"><span class="w-2 h-2 rounded-sm bg-red-300 inline-block"></span>Annulées <b class="text-slate-700 ml-0.5">{{ number_format($totalCanceled ?? 0) }}</b></span>
-                </div>
-                <div class="h-48"><canvas id="bookingsBarChart"></canvas></div>
-            </div>
-
-            <div class="chart-card donut-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-[13px] font-bold text-slate-900">Répartition par statut</h3>
-                    <select id="statusFilter" class="chart-select">
-                        <option value="-1">Tous les statuts</option>
-                        <option value="0">Confirmées</option>
-                        <option value="1">En attente</option>
-                        <option value="2">Annulées</option>
-                    </select>
-                </div>
-                <div class="donut-layout">
-                    <div class="donut-chart-area">
-                        <div class="relative">
-                            <canvas id="statusDonut"></canvas>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span class="text-[9px] text-slate-400 font-medium" id="donutSubLabel">Total réserv.</span>
-                                <span class="text-lg font-extrabold text-slate-900 leading-none mt-0.5" id="donutValue">{{ number_format($statusTotal, 0, ',', ' ') }}</span>
-                                <span class="text-[8px] text-slate-400 mt-1" id="donutLabel"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="donut-legend-area">
-                        @php $statusItems = [
-                            ['label' => 'Confirmées', 'count' => $statusConf, 'color' => '#10b981', 'pct' => $statusTotal > 0 ? round($statusConf/$statusTotal*100) : 0],
-                            ['label' => 'En attente', 'count' => $statusPend, 'color' => '#f59e0b', 'pct' => $statusTotal > 0 ? round($statusPend/$statusTotal*100) : 0],
-                            ['label' => 'Annulées', 'count' => $statusCanc, 'color' => '#ef4444', 'pct' => $statusTotal > 0 ? round($statusCanc/$statusTotal*100) : 0],
-                        ]; @endphp
-                        @foreach($statusItems as $idx => $si)
-                        <div class="donut-legend-item" data-index="{{ $idx }}">
-                            <span class="donut-dot" style="background:{{ $si['color'] }};"></span>
-                            <span class="donut-lbl">{{ $si['label'] }} ({{ $si['count'] }})</span>
-                            <span class="donut-pct">{{ $si['pct'] }}%</span>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- BOOKING LIST TABLE --}}
-        <div class="chart-card booking-list-card">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="text-sm font-bold text-slate-900">Liste des réservations</h3>
-                <div class="flex items-center gap-3">
-                    <select class="chart-select">
-                        <option selected>Aujourd'hui</option>
-                        <option>Cette semaine</option>
-                        <option>Ce mois</option>
-                    </select>
-                    <a href="{{ route('admin.reservations.index') }}" class="booking-see-all">Voir tout</a>
-                </div>
-            </div>
-            <div class="booking-table-wrap">
-                <table class="booking-table">
-                    <thead>
-                        <tr>
-                            <th>Client</th>
-                            <th>Type chambre</th>
-                            <th>N° chambre</th>
-                            <th>Durée</th>
-                            <th>Check-In</th>
-                            <th>Check-Out</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($bookingListData->take(8) as $b)
-                        @php $nights = ($b->date_debut && $b->date_fin) ? $b->date_debut->diffInDays($b->date_fin) : 0; @endphp
-                        <tr>
-                            <td class="font-medium text-slate-800">{{ $b->prenom_client }} {{ $b->nom_client }}</td>
-                            <td>{{ $b->chambre?->typeChambre?->nom_type ?? '-' }}</td>
-                            <td class="font-semibold">{{ $b->chambre?->numero ?? '-' }}</td>
-                            <td>{{ $nights }} nuit{{ $nights > 1 ? 's' : '' }}</td>
-                            <td>{{ $b->date_debut?->format('d/m/Y') ?? '-' }}</td>
-                            <td>{{ $b->date_fin?->format('d/m/Y') ?? '-' }}</td>
-                            <td>
-                                @if($b->statut === 'CONFIRMEE')
-                                    <span class="booking-status booking-confirmed">Confirmée</span>
-                                @elseif($b->statut === 'EN_ATTENTE')
-                                    <span class="booking-status booking-pending">En attente</span>
-                                @elseif($b->statut === 'ANNULEE')
-                                    <span class="booking-status booking-canceled">Annulée</span>
-                                @else
-                                    <span class="booking-status booking-default">{{ $b->statut ?? '-' }}</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="7" class="empty-row">Aucune réservation pour aujourd'hui</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- ══════════ RIGHT COLUMN ══════════ --}}
-    <div class="dash-sidebar flex flex-col gap-8">
-
-        {{-- ROOM OCCUPANCY --}}
-        <div class="sidebar-card">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-900">Occupation des chambres</h3>
-                <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="4" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="10" cy="16" r="1.3"/></svg>
-            </div>
-            <div class="flex items-center gap-2.5 mb-4">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-blue-50">
-                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                </div>
-                <div>
-                    <span class="text-2xl font-extrabold text-slate-900">{{ $totalRooms ?? 0 }}</span>
-                    <span class="text-[12px] text-slate-400 ml-1">Chambres</span>
-                </div>
-            </div>
-
-            <div class="h-3 rounded-full overflow-hidden flex bg-slate-100 mb-5">
-                <div class="h-full" style="width:{{ round($occ/$tot*100) }}%; background:#2563eb;"></div>
-                <div class="h-full" style="width:{{ round($av/$tot*100) }}%; background:#7dd3fc;"></div>
-                <div class="h-full" style="width:{{ round($res/$tot*100) }}%; background:#e2e8f0;"></div>
-                <div class="h-full" style="width:{{ round($maint/$tot*100) }}%; background:#94a3b8;"></div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                @php $roomStats = [
-                    ['label' => 'Occupées', 'val' => $occ, 'color' => '#2563eb'],
-                    ['label' => 'Disponibles', 'val' => $av, 'color' => '#7dd3fc'],
-                    ['label' => 'Réservées', 'val' => $res, 'color' => '#e2e8f0'],
-                    ['label' => 'Maintenance', 'val' => $maint, 'color' => '#94a3b8'],
-                ]; @endphp
-                @foreach($roomStats as $rs)
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0" style="background:{{ $rs['color'] }};"></span>
-                    <span class="text-[12px] font-bold text-slate-800">{{ $rs['val'] }}</span>
-                    <span class="text-[12px] text-slate-400">{{ $rs['label'] }}</span>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- RATINGS --}}
-        <div class="sidebar-card">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-900">Avis & Notes</h3>
-                <a href="{{ route('admin.avis.index') }}" class="text-[11px] font-semibold text-blue-400 hover:underline">Voir tout</a>
-            </div>
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-sky-50">
-                    <span class="text-lg font-extrabold text-sky-500">{{ number_format($avgR, 1) }}</span>
-                </div>
-                <div>
-                    <p class="text-[13px] font-bold text-slate-900">{{ $ratingLabel }}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $reviewsCount ?? 0 }} avis vérifiés</p>
-                </div>
-            </div>
-            <div class="space-y-3">
-                @foreach($ratingCategories as $cat => $score)
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] text-slate-500 flex-shrink-0" style="width:68px">{{ $cat }}</span>
-                    <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full" style="width:{{ min(100, ($score/10)*100) }}%; background:#38bdf8;"></div>
-                    </div>
-                    <span class="text-[12px] font-bold text-slate-700" style="width:24px;text-align:right">{{ number_format($score, 1) }}</span>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- RECENT ACTIVITY --}}
-        <div class="sidebar-card activity-card">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-bold text-slate-900">Activité récente</h3>
-                <a href="{{ route('admin.reservations.index') }}" class="activity-see-all">Voir tout</a>
-            </div>
-            <div class="activity-list custom-scrollbar">
-                @forelse($recentReservations->take(6) as $idx => $act)
-                <div class="activity-item">
-                    <div class="activity-icon
-                        @if($act->statut === 'CONFIRMEE') activity-icon--green
-                        @elseif($act->statut === 'ANNULEE') activity-icon--red
-                        @else activity-icon--blue @endif">
-                        @if($act->statut === 'CONFIRMEE')
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        @elseif($act->statut === 'ANNULEE')
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        @else
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        @endif
-                    </div>
-                    <div class="activity-content">
-                        <p class="activity-title">
-                            @if($act->statut === 'CONFIRMEE') Réservation confirmée
-                            @elseif($act->statut === 'ANNULEE') Réservation annulée
-                            @else Nouvelle réservation @endif</p>
-                        <p class="activity-desc">{{ $act->prenom_client }} {{ $act->nom_client }}, {{ $act->chambre?->typeChambre?->nom_type ?? '' }} N°{{ $act->chambre?->numero ?? '' }}</p>
-                        <p class="activity-time">{{ $act->date_reservation?->diffForHumans() ?? '-' }}</p>
-                    </div>
-                </div>
-                @empty
-                <div class="activity-empty">
-                    <svg width="32" height="32" fill="none" stroke="#cbd5e1" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <p>Aucune activité récente</p>
-                </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+@section('page_title', 'Dashboard')
+@section('title', 'Dashboard Super Admin — DjibStay')
 
 @push('styles')
 <style>
-    .dash-layout {
-        display: grid;
-        grid-template-columns: 1fr 260px;
-        gap: 28px;
-        align-items: start;
+    /* ANIMATIONS */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .dash-main { min-width: 0; }
-    .dash-sidebar { min-width: 0; }
+    .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
 
-    .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
+    .admin-wrap { background:#f2f6fc; min-height:100vh; padding:28px 0 48px; }
+    .admin-inner { max-width:1400px; margin:0 auto; padding:0 24px; }
+
+    .page-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px; }
+    .page-header h1 { font-size:24px; font-weight:900; color:#003580; margin:0; }
+    .page-header .sub { font-size:13px; color:#64748b; margin-top:3px; }
+    .header-badge { background:linear-gradient(135deg,#003580,#0071c2); color:#fff; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:800; }
+
+    /* KPI */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    @media(max-width:1100px){ .kpi-grid { grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:580px) { .kpi-grid { grid-template-columns:1fr; } }
     .kpi-card {
-        background: #fff;
-        border: 1px solid rgba(226,232,240,0.6);
-        border-radius: 16px;
-        padding: 20px 22px;
-        transition: box-shadow 0.2s;
+        background:#fff; border-radius:14px; border:1px solid #e2e8f0;
+        padding:20px 22px; display:flex; align-items:flex-start; gap:14px;
+        box-shadow:0 2px 10px rgba(0,53,128,0.07); transition:all .25s;
     }
-    .kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-    .kpi-label {
-        font-size: 12px;
-        font-weight: 500;
-        color: #94a3b8;
-        line-height: 1;
-    }
-    .kpi-value {
-        font-size: 22px;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1;
-        margin-bottom: 10px;
-    }
-    .kpi-change {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-    }
-    .kpi-up {
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-        color: #10b981;
-        font-weight: 600;
-        background: #ecfdf5;
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-    .kpi-down {
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-        color: #ef4444;
-        font-weight: 600;
-        background: #fef2f2;
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-    .kpi-period { color: #94a3b8; font-size: 11px; }
+    .kpi-card:hover { transform:translateY(-3px); border-color:#0071c2; box-shadow:0 8px 24px rgba(0,53,128,0.13); }
+    .kpi-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .kpi-icon.blue   { background:#dbeafe; }
+    .kpi-icon.green  { background:#dcfce7; }
+    .kpi-icon.yellow { background:#fef3c7; }
+    .kpi-icon.purple { background:#ede9fe; }
+    .kpi-icon.red    { background:#fee2e2; }
+    .kpi-body { flex:1; min-width:0; }
+    .kpi-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+    .kpi-value { font-size:26px; font-weight:900; color:#1e293b; line-height:1; }
+    .kpi-value.small { font-size:18px; }
+    .kpi-change { font-size:11px; font-weight:700; margin-top:5px; display:flex; align-items:center; gap:4px; }
+    .kpi-change.up   { color:#16a34a; }
+    .kpi-change.down { color:#dc2626; }
+    .kpi-change.flat { color:#64748b; }
 
-    .charts-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 24px;
-    }
+    /* DASH CARDS */
+    .dash-card { background:#fff; border-radius:14px; border:1px solid #e2e8f0; overflow:hidden; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,53,128,0.07); }
+    .dash-card-header { padding:14px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; }
+    .dash-card-header h3 { font-size:14px; font-weight:800; color:#003580; margin:0; }
+    .dash-card-header a  { font-size:12px; font-weight:600; color:#0071c2; text-decoration:none; }
+    .dash-card-header a:hover { color:#003580; }
+    .dash-card-body { padding:18px 20px; }
 
-    .sidebar-card {
-        background: #fff;
-        border: 1px solid rgba(226,232,240,0.6);
-        border-radius: 18px;
-        padding: 20px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-        box-sizing: border-box;
-        max-width: 100%;
-    }
-    .chart-card {
-        background: #fff;
-        border: 1px solid rgba(226,232,240,0.6);
-        border-radius: 18px;
-        padding: 22px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-        box-sizing: border-box;
-        max-width: 100%;
-    }
-    .chart-select {
-        font-size: 11px;
-        font-weight: 500;
-        color: #64748b;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 5px 24px 5px 10px;
-        cursor: pointer;
-        outline: none;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 6px center;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .chart-select:hover {
-        border-color: #cbd5e1;
-    }
-    .chart-select:focus {
-        border-color: #93c5fd;
-        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    }
+    /* CHARTS */
+    .chart-bars { display:flex; align-items:flex-end; gap:8px; height:110px; }
+    .chart-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .chart-bar { width:100%; border-radius:5px 5px 0 0; background:linear-gradient(180deg,#0071c2,#003580); min-height:4px; }
+    .chart-bar.yellow { background:linear-gradient(180deg,#febb02,#f5a623); }
+    .chart-bar-label { font-size:10px; color:#94a3b8; font-weight:600; }
+    .chart-bar-val   { font-size:10px; color:#003580; font-weight:700; }
 
-    @media (max-width: 1280px) {
-        .dash-layout { grid-template-columns: 1fr 240px; gap: 24px; }
-    }
-    @media (max-width: 1100px) {
-        .dash-layout { grid-template-columns: 1fr; gap: 28px; }
-        .dash-sidebar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-    }
-    @media (max-width: 800px) {
-        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        .charts-grid { grid-template-columns: 1fr; }
-        .dash-sidebar { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 480px) {
-        .kpi-grid { grid-template-columns: 1fr; }
-    }
+    /* OCCUPATION */
+    .occ-ring-wrap { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+    .occ-ring { position:relative; width:110px; height:110px; flex-shrink:0; }
+    .occ-ring svg { transform:rotate(-90deg); }
+    .occ-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .occ-percent { font-size:20px; font-weight:900; color:#003580; line-height:1; }
+    .occ-sub     { font-size:10px; color:#64748b; font-weight:600; }
+    .occ-legend  { flex:1; }
+    .occ-legend-item { display:flex; align-items:center; gap:8px; font-size:12px; color:#475569; margin-bottom:8px; }
+    .occ-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 
-    .donut-card { overflow: hidden; }
-    .donut-layout {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    .donut-chart-area {
-        flex-shrink: 0;
-        width: 120px;
-        height: 120px;
-    }
-    .donut-chart-area .relative {
-        width: 100%;
-        height: 100%;
-    }
-    .donut-legend-area {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    .donut-legend-item {
-        cursor: pointer;
-        transition: opacity 0.3s, transform 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 6px;
-        border-radius: 8px;
-    }
-    .donut-legend-item:hover {
-        background: rgba(0,0,0,0.03);
-    }
-    .donut-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: inline-block;
-    }
-    .donut-lbl {
-        font-size: 11px;
-        color: #475569;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .donut-pct {
-        font-size: 11px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-left: auto;
-        flex-shrink: 0;
-    }
-    #statusDonut {
-        cursor: pointer;
-    }
-    .booking-list-card { padding: 22px 22px 8px; }
-    .booking-see-all {
-        font-size: 12px;
-        font-weight: 600;
-        color: #3b82f6;
-        text-decoration: none;
-        padding: 5px 14px;
-        border-radius: 8px;
-        background: #eff6ff;
-        transition: background 0.2s;
-    }
-    .booking-see-all:hover { background: #dbeafe; }
-    .booking-table-wrap { overflow-x: auto; }
-    .booking-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 12px;
-    }
-    .booking-table thead tr {
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .booking-table th {
-        text-align: left;
-        font-size: 11px;
-        font-weight: 500;
-        color: #94a3b8;
-        padding: 10px 12px;
-        white-space: nowrap;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .booking-table td {
-        padding: 14px 12px;
-        color: #64748b;
-        white-space: nowrap;
-        border-bottom: 1px solid #f8fafc;
-    }
-    .booking-table tbody tr {
-        transition: background 0.15s;
-    }
-    .booking-table tbody tr:hover {
-        background: #f8fafc;
-    }
-    .booking-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .booking-status {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 0;
-        background: none;
-        border: none;
-    }
-    .booking-confirmed { color: #10b981; }
-    .booking-pending { color: #f59e0b; }
-    .booking-canceled { color: #ef4444; }
-    .booking-default { color: #64748b; }
-    .empty-row {
-        text-align: center;
-        padding: 40px 16px !important;
-        color: #94a3b8;
-        font-size: 13px;
-    }
+    /* TABLE */
+    .dash-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .dash-table th { background:#f8fafc; padding:10px 14px; font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:.5px; border-bottom:2px solid #e2e8f0; text-align:left; }
+    .dash-table td { padding:11px 14px; border-bottom:1px solid #f1f5f9; color:#1e293b; vertical-align:middle; }
+    .dash-table tr:last-child td { border-bottom:none; }
+    .dash-table tr:hover td { background:#f8fafc; }
 
-    .activity-card { padding-bottom: 12px; }
-    .activity-see-all {
-        font-size: 11px;
-        font-weight: 600;
-        color: #3b82f6;
-        text-decoration: none;
-        padding: 4px 12px;
-        border-radius: 6px;
-        background: #eff6ff;
-        transition: background 0.2s;
-    }
-    .activity-see-all:hover { background: #dbeafe; }
-    .activity-list {
-        max-height: 420px;
-        overflow-y: auto;
-        padding-right: 2px;
-    }
-    .activity-item {
-        display: flex;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .activity-icon--green { background: #d1fae5; color: #059669; }
-    .activity-icon--red { background: #fee2e2; color: #dc2626; }
-    .activity-icon--blue { background: #dbeafe; color: #2563eb; }
-    .activity-content { flex: 1; min-width: 0; }
-    .activity-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #1e293b;
-        line-height: 1.3;
-        margin: 0 0 2px;
-    }
-    .activity-desc {
-        font-size: 11px;
-        color: #64748b;
-        line-height: 1.4;
-        margin: 0 0 4px;
-    }
-    .activity-time {
-        font-size: 10px;
-        color: #94a3b8;
-        margin: 0;
-    }
-    .activity-empty {
-        text-align: center;
-        padding: 32px 0;
-        color: #94a3b8;
-        font-size: 12px;
-    }
-    .activity-empty svg { margin: 0 auto 8px; }
+    /* BADGES */
+    .badge-s { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .badge-s.confirmee  { background:#dcfce7; color:#14532d; }
+    .badge-s.en_attente { background:#fef3c7; color:#92400e; }
+    .badge-s.annulee    { background:#fee2e2; color:#991b1b; }
 
-    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 8px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+    /* QUICK ACTIONS */
+    .quick-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .qa-btn { background:#fff; border:2px solid #e2e8f0; border-radius:10px; padding:13px 14px; text-decoration:none; color:#003580; font-weight:700; font-size:12px; display:flex; align-items:center; gap:9px; transition:all .2s; }
+    .qa-btn:hover { border-color:#003580; background:#f0f7ff; color:#003580; }
+    .qa-btn .qa-icon { width:32px; height:32px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+
+    /* PERF */
+    .perf-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f1f5f9; }
+    .perf-row:last-child { border-bottom:none; }
+    .perf-rank { width:28px; height:28px; border-radius:50%; background:#003580; color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .perf-rank.gold   { background:#febb02; color:#003580; }
+    .perf-rank.silver { background:#94a3b8; color:#fff; }
+    .perf-rank.bronze { background:#cd7c2f; color:#fff; }
+    .perf-name { flex:1; font-size:13px; font-weight:700; color:#1e293b; }
+    .perf-bar-wrap { flex:1; }
+    .perf-bar-bg   { height:6px; background:#f1f5f9; border-radius:3px; }
+    .perf-bar-fill { height:6px; background:linear-gradient(90deg,#003580,#0071c2); border-radius:3px; }
+    .perf-rev { font-size:12px; font-weight:800; color:#003580; white-space:nowrap; }
+
+    /* PROGRESS BARS */
+    .progress-bar-wrap { margin-bottom:12px; }
+    .progress-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
+    .progress-bar-label .name  { font-weight:600; color:#1e293b; }
+    .progress-bar-label .value { font-weight:700; color:#003580; }
+    .progress-bar-bg   { height:8px; background:#f1f5f9; border-radius:4px; }
+    .progress-bar-fill { height:8px; border-radius:4px; transition:width .6s; }
+
+    /* STAT HIGHLIGHT */
+    .stat-highlight {
+        background:linear-gradient(135deg,#003580,#0071c2);
+        border-radius:12px; padding:16px;
+        color:#fff; text-align:center;
+    }
+    .stat-highlight .num { font-size:28px; font-weight:900; color:#febb02; line-height:1; }
+    .stat-highlight .lbl { font-size:11px; color:rgba(255,255,255,0.75); margin-top:4px; text-transform:uppercase; letter-spacing:.4px; }
+
+    /* HOTEL MINI CARD */
+    .hotel-mini { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f1f5f9; }
+    .hotel-mini:last-child { border-bottom:none; }
+    .hotel-mini-avatar { width:40px; height:40px; background:linear-gradient(135deg,#003580,#0071c2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .hotel-mini-name { font-size:13px; font-weight:700; color:#1e293b; }
+    .hotel-mini-sub  { font-size:11px; color:#64748b; margin-top:2px; }
 </style>
 @endpush
 
+@section('content')
+<div class="admin-wrap">
+<div class="admin-inner">
+
+    {{-- HEADER --}}
+    <div class="page-header">
+        <div>
+            <h1>🏆 Dashboard Super Admin</h1>
+            <div class="sub">{{ now()->locale('fr')->translatedFormat('l d F Y') }}</div>
+        </div>
+        <span class="header-badge">SUPER ADMIN</span>
+    </div>
+
+    {{-- KPI ROW 1 --}}
+    <div class="kpi-grid fade-in-up delay-1">
+        <div class="kpi-card">
+            <div class="kpi-icon blue">💰</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Revenus totaux</div>
+                <div class="kpi-value small">{{ number_format($totalRevenue,0,',',' ') }} <span style="font-size:12px;color:#64748b;">{{ \App\Models\SiteSetting::get('app_devise','DJF') }}</span></div>
+                <div class="kpi-change {{ $revenueChange >= 0 ? 'up':'down' }}">
+                    <i class="bi bi-arrow-{{ $revenueChange >= 0 ? 'up':'down' }}-circle-fill"></i>
+                    {{ abs($revenueChange) }}% vs sem. préc.
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon green">📅</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Nouvelles réservations</div>
+                <div class="kpi-value">{{ $newBookings }}</div>
+                <div class="kpi-change {{ $bookingsChange >= 0 ? 'up':'down' }}">
+                    <i class="bi bi-arrow-{{ $bookingsChange >= 0 ? 'up':'down' }}-circle-fill"></i>
+                    {{ abs($bookingsChange) }}% cette semaine
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">🏨</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Hôtels partenaires</div>
+                <div class="kpi-value">{{ $hotels->count() }}</div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-building"></i>
+                    {{ $hotels->sum('types_chambre_count') }} types de chambres
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon purple">⭐</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Note moyenne</div>
+                <div class="kpi-value">{{ number_format($avgRating,1) }}<span style="font-size:13px;color:#64748b;">/5</span></div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-chat-square-text"></i>
+                    {{ $reviewsCount }} avis clients
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- KPI ROW 2 --}}
+    <div class="kpi-grid fade-in-up delay-2" style="margin-bottom:24px;">
+        <div class="kpi-card">
+            <div class="kpi-icon green">✅</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Confirmées</div>
+                <div class="kpi-value">{{ $reservationsByStatus['CONFIRMEE'] }}</div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-check-circle"></i>
+                    Réservations confirmées
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon {{ $reservationsByStatus['EN_ATTENTE'] > 0 ? 'yellow':'green' }}">⏳</div>
+            <div class="kpi-body">
+                <div class="kpi-label">En attente</div>
+                <div class="kpi-value" style="{{ $reservationsByStatus['EN_ATTENTE'] > 0 ? 'color:#f59e0b;' : '' }}">
+                    {{ $reservationsByStatus['EN_ATTENTE'] }}
+                </div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-hourglass-split"></i>
+                    À traiter
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon yellow">🛏️</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Chambres totales</div>
+                <div class="kpi-value">{{ $totalRooms }}</div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-door-open"></i>
+                    {{ $available }} dispo · {{ $occupied }} occupées
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon red">❌</div>
+            <div class="kpi-body">
+                <div class="kpi-label">Annulées</div>
+                <div class="kpi-value">{{ $reservationsByStatus['ANNULEE'] }}</div>
+                <div class="kpi-change flat">
+                    <i class="bi bi-x-circle"></i>
+                    Total annulations
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- GRAPHIQUES --}}
+    <div class="row g-4 mb-4 fade-in-up delay-3">
+        <div class="col-lg-5">
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>💰 Revenus — 8 mois</h3></div>
+                <div class="dash-card-body">
+                    <div id="revenueChart" style="min-height: 180px;"></div>
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;font-size:12px;color:#64748b;">
+                        <span>Total confirmé</span>
+                        <strong style="color:#003580;">{{ number_format($totalRevenue,0,',',' ') }} {{ \App\Models\SiteSetting::get('app_devise','DJF') }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>📅 Réservations — 7 jours</h3></div>
+                <div class="dash-card-body">
+                    <div id="bookingsChart" style="min-height: 180px;"></div>
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;font-size:12px;color:#64748b;">
+                        <span>Cette semaine</span>
+                        <strong style="color:#003580;">{{ $newBookings }} réservation(s)</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>🏨 Occupation</h3></div>
+                <div class="dash-card-body">
+                    <div class="occ-ring-wrap">
+                        <div id="occupancyChart" style="width: 130px; height: 130px; margin: -10px;"></div>
+                        <div class="occ-legend">
+                            <div class="occ-legend-item"><div class="occ-dot" style="background:#0071c2;"></div>Occupées : <strong>{{ $occupied }}</strong></div>
+                            <div class="occ-legend-item"><div class="occ-dot" style="background:#22c55e;"></div>Libres : <strong>{{ $available }}</strong></div>
+                            <div class="occ-legend-item"><div class="occ-dot" style="background:#febb02;"></div>Réservées : <strong>{{ $reserved }}</strong></div>
+                            <div class="occ-legend-item"><div class="occ-dot" style="background:#f87171;"></div>Maintenance : <strong>{{ $notReady }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- TABLE + ACTIONS + STATUTS --}}
+    <div class="row g-4 mb-4 fade-in-up delay-4">
+        <div class="col-lg-8">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>🕐 Activité récente</h3>
+                    <a href="{{ route('admin.reservations.index') }}">Voir tout →</a>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th><th>Client</th><th>Hôtel</th>
+                                <th>Arrivée</th><th>Montant</th><th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentActivity as $r)
+                            <tr>
+                                <td><span style="font-family:monospace;font-size:11px;color:#003580;font-weight:700;">{{ $r->code_reservation }}</span></td>
+                                <td>{{ $r->prenom_client }} {{ $r->nom_client }}</td>
+                                <td style="font-size:12px;color:#64748b;">{{ $r->chambre->typeChambre->hotel->nom ?? '—' }}</td>
+                                <td>{{ $r->date_debut->format('d/m/Y') }}</td>
+                                <td style="font-weight:700;color:#003580;">{{ number_format($r->montant_total,0,',',' ') }} {{ \App\Models\SiteSetting::get('app_devise','DJF') }}</td>
+                                <td>
+                                    <span class="badge-s {{ strtolower($r->statut) }}">
+                                        @if($r->statut==='CONFIRMEE') ✅ Confirmée
+                                        @elseif($r->statut==='EN_ATTENTE') ⏳ En attente
+                                        @else ❌ Annulée
+                                        @endif
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:24px;">Aucune activité récente</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            {{-- Statuts réservations --}}
+            <div class="dash-card mb-4">
+                <div class="dash-card-header"><h3>📊 Statuts réservations</h3></div>
+                <div class="dash-card-body">
+                    @php
+                        $totalRes = array_sum($reservationsByStatus) ?: 1;
+                        $statBars = [
+                            ['label'=>'Confirmées',  'value'=>$reservationsByStatus['CONFIRMEE'],  'color'=>'#22c55e'],
+                            ['label'=>'En attente',  'value'=>$reservationsByStatus['EN_ATTENTE'], 'color'=>'#f59e0b'],
+                            ['label'=>'Annulées',    'value'=>$reservationsByStatus['ANNULEE'],    'color'=>'#f87171'],
+                        ];
+                    @endphp
+                    @foreach($statBars as $bar)
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-label">
+                            <span class="name">{{ $bar['label'] }}</span>
+                            <span class="value">{{ $bar['value'] }}</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill"
+                                 style="width:{{ round(($bar['value']/$totalRes)*100) }}%;background:{{ $bar['color'] }};"></div>
+                        </div>
+                    </div>
+                    @endforeach
+
+                    {{-- Stats highlights --}}
+                    <div class="row g-2 mt-3">
+                        <div class="col-6">
+                            <div class="stat-highlight">
+                                <div class="num">{{ $totalBooked ?? array_sum($reservationsByStatus) }}</div>
+                                <div class="lbl">Total réservations</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-highlight">
+                                <div class="num">{{ $hotels->count() }}</div>
+                                <div class="lbl">Hôtels actifs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Actions rapides --}}
+            <div class="dash-card">
+                <div class="dash-card-header"><h3>⚡ Actions rapides</h3></div>
+                <div class="dash-card-body">
+                    <div class="quick-actions">
+                        <a href="{{ route('admin.hotels.create') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#dbeafe;">🏨</div>Ajouter hôtel
+                        </a>
+                        <a href="{{ route('admin.reservations.index') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#dcfce7;">📋</div>Réservations
+                        </a>
+                        <a href="{{ route('admin.users.index') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#ede9fe;">👥</div>Utilisateurs
+                        </a>
+                        <a href="{{ route('admin.settings.edit') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#fef3c7;">⚙️</div>Paramètres
+                        </a>
+                        <a href="{{ route('admin.chambres.index') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#fee2e2;">🛏️</div>Chambres
+                        </a>
+                        <a href="{{ route('admin.avis.index') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#fef3c7;">⭐</div>Avis clients
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- PERF + HOTELS --}}
+    <div class="row g-4">
+
+        {{-- Performance par hôtel --}}
+        <div class="col-lg-5">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>🏆 Performance par hôtel</h3>
+                    <a href="{{ route('admin.hotels.index') }}">Voir tout →</a>
+                </div>
+                <div class="dash-card-body">
+                    @php $maxPerf = $hotelsPerformance->max('revenue') ?: 1; @endphp
+                    @forelse($hotelsPerformance as $i => $hp)
+                    <div class="perf-row">
+                        <div class="perf-rank {{ $i===0?'gold':($i===1?'silver':($i===2?'bronze':'')) }}">{{ $i+1 }}</div>
+                        <div class="perf-name">
+                            {{ $hp['hotel']->nom }}
+                            <div style="font-size:11px;color:#64748b;font-weight:500;">{{ $hp['reservations_count'] }} réservations</div>
+                        </div>
+                        <div class="perf-bar-wrap">
+                            <div class="perf-bar-bg">
+                                <div class="perf-bar-fill" style="width:{{ $maxPerf>0?round(($hp['revenue']/$maxPerf)*100):0 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="perf-rev">{{ number_format($hp['revenue']/1000,0) }}k</div>
+                    </div>
+                    @empty
+                    <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Aucune donnée</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Liste hôtels --}}
+        <div class="col-lg-4">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>🏨 Hôtels partenaires</h3>
+                    <a href="{{ route('admin.hotels.index') }}">Gérer →</a>
+                </div>
+                <div class="dash-card-body" style="padding:0;">
+                    @forelse($hotels->take(6) as $hotel)
+                    <div class="hotel-mini" style="padding:10px 18px;">
+                        <div class="hotel-mini-avatar">🏨</div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="hotel-mini-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                {{ $hotel->nom }}
+                            </div>
+                            <div class="hotel-mini-sub">
+                                {{ $hotel->ville ?? 'Djibouti' }} · {{ $hotel->types_chambre_count }} types · {{ $hotel->avis_count }} avis
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.hotels.edit', $hotel) }}"
+                           style="background:#f0f7ff;color:#0071c2;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:11px;font-weight:700;white-space:nowrap;">
+                            ✏️ Modifier
+                        </a>
+                    </div>
+                    @empty
+                    <div style="text-align:center;color:#94a3b8;padding:24px;font-size:13px;">Aucun hôtel</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Avis récents --}}
+        <div class="col-lg-3">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>⭐ Avis récents</h3>
+                    <a href="{{ route('admin.avis.index') }}">Voir →</a>
+                </div>
+                <div style="padding:0;">
+                    @php
+                        $recentAvis = \App\Models\Avis::with('hotel')
+                            ->latest()->take(5)->get();
+                    @endphp
+                    @forelse($recentAvis as $av)
+                    <div style="padding:11px 16px;border-bottom:1px solid #f1f5f9;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                            <span style="font-size:13px;font-weight:700;color:#1e293b;">{{ $av->nom_client }}</span>
+                            <div style="display:flex;gap:1px;">
+                                @for($i=1;$i<=5;$i++)
+                                <i class="bi bi-star-fill" style="font-size:9px;color:{{ $i<=$av->note?'#febb02':'#e2e8f0' }};"></i>
+                                @endfor
+                            </div>
+                        </div>
+                        <div style="font-size:11px;color:#94a3b8;">{{ $av->hotel->nom ?? '—' }}</div>
+                        @if($av->commentaire)
+                        <p style="font-size:11px;color:#64748b;margin:3px 0 0;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+                            {{ $av->commentaire }}
+                        </p>
+                        @endif
+                    </div>
+                    @empty
+                    <div style="text-align:center;color:#94a3b8;padding:24px;font-size:13px;">Aucun avis</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+@endsection
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof Chart === 'undefined') return;
-
-    var blue = '#2196f3';
-    var gridColor = 'rgba(148,163,184,0.08)';
-    var tickColor = '#94a3b8';
-    Chart.defaults.font.family = "'Inter', sans-serif";
-
-    var tooltip = {
-        backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1',
-        padding: {x:12,y:10}, cornerRadius: 10, displayColors: false,
-        titleFont: { size: 12, weight: '700' }, bodyFont: { size: 11 }
-    };
-
-    function scaleOpts(yCallback) {
-        return {
-            y: { beginAtZero: true, grid: { color: gridColor, drawBorder: false }, ticks: { color: tickColor, font:{size:11}, callback: yCallback || function(v){return v;} }, border: { display: false } },
-            x: { grid: { display: false }, ticks: { color: tickColor, font:{size:11} }, border: { display: false } }
-        };
-    }
-
-    function gradientFill(ctx, top, bot) {
-        var g = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
-        g.addColorStop(0, top); g.addColorStop(1, bot); return g;
-    }
-
-    var gL = {!! json_encode(!empty($guestsData) ? array_column($guestsData, 'day') : []) !!};
-    var gV = {!! json_encode(!empty($guestsData) ? array_column($guestsData, 'count') : []) !!};
-    var el1 = document.getElementById('guestsChart');
-    if (el1 && gL.length) {
-        new Chart(el1, { type:'line', data:{ labels:gL, datasets:[{
-            data:gV, borderColor:blue, backgroundColor:function(c){return gradientFill(c,'rgba(33,150,243,0.15)','rgba(33,150,243,0)');},
-            fill:true, borderWidth:2.5, pointBackgroundColor:'#fff', pointBorderColor:blue, pointBorderWidth:2.5, pointRadius:4, pointHoverRadius:7, tension:0.4
-        }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:tooltip}, scales:scaleOpts() }});
-    }
-
-    var rL = {!! json_encode(!empty($revenueData) ? array_column($revenueData, 'month') : []) !!};
-    var rV = {!! json_encode(!empty($revenueData) ? array_column($revenueData, 'amount') : []) !!};
-    var el2 = document.getElementById('revenueChart');
-    if (el2 && rL.length) {
-        new Chart(el2, { type:'line', data:{ labels:rL, datasets:[{
-            data:rV, borderColor:'#8b5cf6', backgroundColor:function(c){return gradientFill(c,'rgba(139,92,246,0.12)','rgba(139,92,246,0)');},
-            fill:true, borderWidth:2.5, pointBackgroundColor:'#fff', pointBorderColor:'#8b5cf6', pointBorderWidth:2.5, pointRadius:4, pointHoverRadius:7, tension:0.4
-        }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:tooltip},
-            scales:scaleOpts(function(v){return v>=1000?(v/1000)+'K':v;}) }});
-    }
-
-    var bD = {!! json_encode($bookedData ?? []) !!};
-    var cD = {!! json_encode($canceledData ?? []) !!};
-    var el3 = document.getElementById('bookingsBarChart');
-    if (el3) {
-        new Chart(el3, { type:'bar', data:{
-            labels:['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'],
-            datasets:[
-                { label:'Confirmées', data:bD, backgroundColor:blue, borderRadius:6, barPercentage:0.55, categoryPercentage:0.7 },
-                { label:'Annulées', data:cD, backgroundColor:'#fca5a5', borderRadius:6, barPercentage:0.55, categoryPercentage:0.7 }
-            ]
-        }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:tooltip}, scales:scaleOpts() }});
-    }
-
-    var el4 = document.getElementById('statusDonut');
-    if (el4) {
-        var donutData = [{{ $statusConf }},{{ $statusPend }},{{ $statusCanc }}];
-        var donutLabels = ['Confirmées','En attente','Annulées'];
-        var donutColors = ['#10b981','#f59e0b','#ef4444'];
-        var donutFaded  = ['rgba(16,185,129,0.25)','rgba(245,158,11,0.25)','rgba(239,68,68,0.25)'];
-        var donutTotal = donutData.reduce(function(a,b){return a+b;},0) || 1;
-        var selectedIdx = -1;
-        var statusChart = null;
-
-        function donutSelect(idx) {
-            if (!statusChart) return;
-            var filterEl = document.getElementById('statusFilter');
-            if (selectedIdx === idx || idx === -1) {
-                selectedIdx = -1;
-                statusChart.data.datasets[0].backgroundColor = [donutColors[0], donutColors[1], donutColors[2]];
-                document.getElementById('donutValue').textContent = '{{ number_format($statusTotal, 0, ",", " ") }}';
-                document.getElementById('donutSubLabel').textContent = 'Total réserv.';
-                document.getElementById('donutLabel').textContent = '';
-                document.querySelectorAll('.donut-legend-item').forEach(function(item) {
-                    item.style.opacity = '1';
-                    item.style.transform = 'scale(1)';
-                });
-                if (filterEl) filterEl.value = '-1';
-            } else {
-                selectedIdx = idx;
-                var pct = Math.round(donutData[idx] / donutTotal * 100);
-                document.getElementById('donutValue').textContent = donutData[idx];
-                document.getElementById('donutSubLabel').textContent = donutLabels[idx];
-                document.getElementById('donutLabel').textContent = pct + '% du total';
-                statusChart.data.datasets[0].backgroundColor = [
-                    idx === 0 ? donutColors[0] : donutFaded[0],
-                    idx === 1 ? donutColors[1] : donutFaded[1],
-                    idx === 2 ? donutColors[2] : donutFaded[2]
-                ];
-                document.querySelectorAll('.donut-legend-item').forEach(function(item, i) {
-                    item.style.opacity = i === idx ? '1' : '0.4';
-                    item.style.transform = i === idx ? 'scale(1.05)' : 'scale(1)';
-                });
-                if (filterEl) filterEl.value = idx;
+document.addEventListener("DOMContentLoaded", function() {
+    const revDataRaw = @json($revenueData);
+    // ApexCharts attends l'ordre chrono, donc on le reverse
+    const revData = revDataRaw.reverse();
+    
+    // 1. REVENUE CHART
+    const revOptions = {
+        series: [{
+            name: 'Revenus',
+            data: revData.map(d => d.amount)
+        }],
+        chart: {
+            type: 'bar',
+            height: 180,
+            toolbar: { show: false },
+            fontFamily: 'inherit',
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
             }
-            statusChart.update('none');
-        }
-
-        statusChart = new Chart(el4, {
-            type: 'doughnut',
-            data: {
-                labels: donutLabels,
-                datasets: [{
-                    data: donutData,
-                    backgroundColor: [donutColors[0], donutColors[1], donutColors[2]],
-                    borderWidth: 4,
-                    borderColor: '#fff',
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '68%',
-                onClick: function(event, elements) {
-                    if (elements && elements.length > 0) {
-                        donutSelect(elements[0].index);
-                    }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                columnWidth: '45%',
+            }
+        },
+        dataLabels: { enabled: false },
+        stroke: { width: 2, colors: ['transparent'] },
+        xaxis: {
+            categories: revData.map(d => d.month),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 } }
+        },
+        yaxis: {
+            labels: {
+                formatter: function (val) {
+                    if (val >= 1000000) return (val/1000000).toFixed(1) + "M";
+                    if (val >= 1000) return (val/1000).toFixed(0) + "k";
+                    return val;
                 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#e2e8f0',
-                        padding: { x: 14, y: 10 },
-                        cornerRadius: 10,
-                        displayColors: true,
-                        boxWidth: 10,
-                        boxHeight: 10,
-                        callbacks: {
-                            label: function(ctx) {
-                                var pct = Math.round(ctx.raw / donutTotal * 100);
-                                return ' ' + ctx.label + ': ' + ctx.raw + ' (' + pct + '%)';
-                            }
-                        }
+                style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }
+            }
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shade: 'light',
+                type: "vertical",
+                shadeIntensity: 0.25,
+                gradientToColors: undefined,
+                inverseColors: true,
+                opacityFrom: 1,
+                opacityTo: 1,
+                stops: [50, 0, 100],
+                colorStops: [
+                    { offset: 0, color: '#0071c2', opacity: 1 },
+                    { offset: 100, color: '#003580', opacity: 1 }
+                ]
+            }
+        },
+        grid: { borderColor: '#f1f5f9', strokeDashArray: 4, yaxis: { lines: { show: true } } },
+        tooltip: {
+            y: { formatter: function (val) { return val.toLocaleString() + " " + "{{ \App\Models\SiteSetting::get('app_devise','DJF') }}" } }
+        }
+    };
+    new ApexCharts(document.querySelector("#revenueChart"), revOptions).render();
+
+    // 2. BOOKINGS CHART
+    const guestDataRaw = @json($guestsData);
+    const guestData = guestDataRaw.reverse();
+    
+    const bookingsOptions = {
+        series: [{
+            name: 'Réservations',
+            data: guestData.map(d => d.count)
+        }],
+        chart: {
+            type: 'area',
+            height: 180,
+            toolbar: { show: false },
+            fontFamily: 'inherit',
+            animations: { enabled: true, easing: 'easeinout', speed: 800 }
+        },
+        colors: ['#febb02'],
+        fill: {
+            type: 'gradient',
+            gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 90, 100] }
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        xaxis: {
+            categories: guestData.map(d => d.day),
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 } }
+        },
+        yaxis: {
+            labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: 600 }, formatter: (v) => Math.round(v) }
+        },
+        grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
+        tooltip: {
+            y: { formatter: function (val) { return val + " rés." } }
+        }
+    };
+    new ApexCharts(document.querySelector("#bookingsChart"), bookingsOptions).render();
+
+    // 3. OCCUPANCY CHART (RadialBar)
+    const occOptions = {
+        series: [{{ $occupancyPercent }}],
+        chart: {
+            height: 160,
+            type: 'radialBar',
+            fontFamily: 'inherit',
+            animations: { enabled: true, easing: 'easeinout', speed: 1200 }
+        },
+        plotOptions: {
+            radialBar: {
+                hollow: { size: '65%' },
+                track: { background: '#f1f5f9' },
+                dataLabels: {
+                    name: { show: false },
+                    value: {
+                        fontSize: '22px',
+                        fontWeight: 900,
+                        color: '#003580',
+                        offsetY: 8,
+                        formatter: function (val) { return val + "%" }
                     }
                 }
             }
-        });
-
-        var legendItems = document.querySelectorAll('.donut-legend-item');
-        for (var li = 0; li < legendItems.length; li++) {
-            (function(index) {
-                legendItems[index].addEventListener('click', function() {
-                    donutSelect(index);
-                    document.getElementById('statusFilter').value = index;
-                });
-            })(li);
-        }
-
-        var statusFilter = document.getElementById('statusFilter');
-        if (statusFilter) {
-            statusFilter.addEventListener('change', function() {
-                donutSelect(parseInt(this.value));
-            });
-        }
-    }
+        },
+        fill: { colors: ['#0071c2'] },
+        stroke: { lineCap: 'round' }
+    };
+    new ApexCharts(document.querySelector("#occupancyChart"), occOptions).render();
 });
 </script>
 @endpush

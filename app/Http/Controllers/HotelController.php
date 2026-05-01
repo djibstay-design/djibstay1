@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hotel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,12 +15,34 @@ class HotelController extends Controller
             ->with(['typesChambre', 'avis'])
             ->withAvg('avis', 'note');
 
+        $roomsWanted = max(1, min(20, (int) $request->input('rooms', 1)));
+        $adults = max(1, min(30, (int) $request->input('adults', 2)));
+        $children = max(0, min(20, (int) $request->input('children', 0)));
+        $guestsTotal = $adults + $children;
+        $minCapacityPerRoom = max(1, (int) ceil($guestsTotal / $roomsWanted));
+
+        if ($request->filled('check_in') && $request->filled('check_out')) {
+            try {
+                $checkIn = Carbon::parse($request->input('check_in'))->startOfDay();
+                $checkOut = Carbon::parse($request->input('check_out'))->startOfDay();
+                if ($checkOut->gt($checkIn)) {
+                    $query->withRoomAvailableBetween(
+                        $checkIn->toDateString(),
+                        $checkOut->toDateString(),
+                        $roomsWanted,
+                        $minCapacityPerRoom
+                    );
+                }
+            } catch (\Throwable) {
+            }
+        }
+
         if ($request->filled('search')) {
-            $query->where('nom', 'like', '%' . $request->search . '%');
+            $query->where('nom', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('city')) {
-            $query->where('ville', 'like', '%' . $request->city . '%');
+            $query->where('ville', 'like', '%'.$request->city.'%');
         }
 
         if ($request->filled('min_price')) {

@@ -1,0 +1,272 @@
+/* Styles pour le calendrier de disponibilité */
+
+.availability-calendar {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.availability-calendar h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.room-info {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #666;
+  padding: 10px;
+  background-color: #e8f5e9;
+  border-left: 4px solid #4CAF50;
+  border-radius: 4px;
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.calendar-table thead {
+  background-color: #2196F3;
+  color: white;
+}
+
+.calendar-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #1976D2;
+}
+
+.calendar-table tbody tr {
+  border-bottom: 1px solid #ddd;
+  transition: background-color 0.2s ease;
+}
+
+.calendar-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.calendar-table tbody tr.available {
+  cursor: pointer;
+}
+
+.calendar-table tbody tr.available:hover {
+  background-color: #e3f2fd;
+}
+
+.calendar-table tbody tr.unavailable {
+  background-color: #ffebee;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.calendar-table td {
+  padding: 12px 15px;
+  text-align: center;
+}
+
+.calendar-table .date {
+  text-align: left;
+  font-weight: 500;
+  color: #333;
+}
+
+.calendar-table .day-name {
+  color: #666;
+  font-size: 12px;
+}
+
+.calendar-table .available-count {
+  font-weight: bold;
+  color: #4CAF50;
+  font-size: 14px;
+}
+
+.calendar-table .total-count {
+  color: #999;
+  font-size: 12px;
+}
+
+.calendar-table .occupancy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.occupancy-bar {
+  width: 60px;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.occupancy-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* États de sélection */
+.day-row.selected-check-in {
+  background-color: #c8e6c9 !important;
+  border-left: 4px solid #4CAF50;
+}
+
+.day-row.selected-check-out {
+  background-color: #a5d6a7 !important;
+  border-left: 4px solid #388E3C;
+}
+
+.day-row.selected-check-in::before {
+  content: '📍 Arrivée';
+  position: absolute;
+  left: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.day-row.selected-check-out::before {
+  content: '📍 Départ';
+  position: absolute;
+  left: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #1b5e20;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .availability-calendar {
+    padding: 10px;
+  }
+
+  .availability-calendar h3 {
+    font-size: 18px;
+  }
+
+  .calendar-table {
+    font-size: 12px;
+  }
+
+  .calendar-table th,
+  .calendar-table td {
+    padding: 8px 5px;
+  }
+
+  .occupancy-bar {
+    width: 40px;
+    height: 16px;
+  }
+
+  .occupancy {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .availability-calendar {
+    padding: 8px;
+  }
+
+  .availability-calendar h3 {
+    font-size: 16px;
+  }
+
+  .calendar-table {
+    font-size: 10px;
+  }
+
+  .calendar-table th,
+  .calendar-table td {
+    padding: 6px 3px;
+  }
+
+  .room-info {
+    font-size: 12px;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    background-color: #e8f5e9;
+  }
+  50% {
+    background-color: #c8e6c9;
+  }
+  100% {
+    background-color: #e8f5e9;
+  }
+}
+
+.day-row.available:hover {
+  animation: pulse 0.6s ease-in-out;
+}
+
+/* Badge pour les jours spéciaux */
+.calendar-table tbody tr[data-special] td::after {
+  content: attr(data-special);
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 10px;
+  background-color: #ff9800;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* Legend */
+.calendar-legend {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 4px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.legend-color.available {
+  background-color: #e3f2fd;
+  border: 1px solid #2196F3;
+}
+
+.legend-color.unavailable {
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+}
+
+.legend-color.selected {
+  background-color: #c8e6c9;
+  border: 2px solid #4CAF50;
+}

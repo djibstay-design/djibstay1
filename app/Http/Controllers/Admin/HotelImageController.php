@@ -13,17 +13,20 @@ use Illuminate\View\View;
 class HotelImageController extends Controller
 {
     public function index(Request $request): View
-    {
-        $hotelIds = $this->getAuthorizedHotelIds($request);
-        $images = HotelImage::whereIn('hotel_id', $hotelIds)
-            ->with('hotel:id,nom')
-            ->orderBy('hotel_id')
-            ->orderBy('sort_order')
-            ->latest()
-            ->paginate(12);
+{
+    $hotelIds = $this->getAuthorizedHotelIds($request);
+    $images = HotelImage::whereIn('hotel_id', $hotelIds)
+        ->with('hotel:id,nom')
+        ->orderBy('hotel_id')
+        ->orderBy('sort_order')
+        ->latest()
+        ->paginate(12);
 
-        return view('admin.images.index', compact('images'));
-    }
+    // ← Ajoute ça
+    $hotels = $this->getAuthorizedHotels($request);
+
+    return view('admin.images.index', compact('images', 'hotels'));
+}
 
     public function create(Request $request): View
     {

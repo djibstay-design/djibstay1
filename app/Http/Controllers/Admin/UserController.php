@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Hotel;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -26,7 +28,8 @@ class UserController extends Controller
         if ($request->filled('role')) {
             $query->where('role', $request->role);
         }
-        $users = $query->orderByRaw("CASE role WHEN 'SUPER_ADMIN' THEN 1 WHEN 'ADMIN' THEN 2 ELSE 3 END")
+        $users = $query->with(['managedHotels' => fn ($q) => $q->orderBy('nom')])
+            ->orderByRaw("CASE role WHEN 'SUPER_ADMIN' THEN 1 WHEN 'ADMIN' THEN 2 ELSE 3 END")
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -36,26 +39,40 @@ class UserController extends Controller
 
     public function create(): View
     {
-        return view('admin.users.create');
+        $hotels = Hotel::query()->orderBy('nom')->get(['id', 'nom', 'ville']);
+
+        return view('admin.users.create', compact('hotels'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:100'],
             'prenom' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => ['required', 'in:SUPER_ADMIN,ADMIN'],
-        ]);
+        ];
 
-        User::create([
-            'name' => $validated['name'],
-            'prenom' => $validated['prenom'] ?? null,
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-        ]);
+        if ($request->input('role') === 'ADMIN') {
+            $rules['hotel_id'] = ['required', 'exists:hotels,id'];
+        }
+
+        $validated = $request->validate($rules);
+
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'prenom' => $validated['prenom'] ?? null,
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'],
+            ]);
+
+            if ($validated['role'] === 'ADMIN') {
+                Hotel::query()->whereKey($validated['hotel_id'])->update(['admin_id' => $user->id]);
+            }
+        });
 
         return redirect()->route('admin.users.index')->with('success', 'Utilisateur créé.');
     }
@@ -65,7 +82,10 @@ class UserController extends Controller
         if (! in_array($user->role, ['SUPER_ADMIN', 'ADMIN'])) {
             abort(404);
         }
-        return view('admin.users.edit', compact('user'));
+
+        $hotels = Hotel::query()->orderBy('nom')->get(['id', 'nom', 'ville']);
+
+        return view('admin.users.edit', compact('user', 'hotels'));
     }
 
     public function update(Request $request, User $user): RedirectResponse
@@ -74,22 +94,40 @@ class UserController extends Controller
             abort(404);
         }
 
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:100'],
             'prenom' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email,'.$user->id],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'role' => ['required', 'in:SUPER_ADMIN,ADMIN'],
-        ]);
+        ];
 
-        $user->name = $validated['name'];
-        $user->prenom = $validated['prenom'] ?? null;
-        $user->email = $validated['email'];
-        $user->role = $validated['role'];
-        if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
+        if ($request->input('role') === 'ADMIN') {
+            $rules['hotel_id'] = ['required', 'exists:hotels,id'];
         }
-        $user->save();
+
+        $validated = $request->validate($rules);
+
+        DB::transaction(function () use ($validated, $user) {
+            $user->name = $validated['name'];
+            $user->prenom = $validated['prenom'] ?? null;
+            $user->email = $validated['email'];
+            $user->role = $validated['role'];
+            if (! empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+            $user->save();
+
+            // Si SUPER_ADMIN, il ne doit être rattaché à aucun hôtel en tant qu'admin
+            if ($validated['role'] === 'SUPER_ADMIN') {
+                Hotel::query()->where('admin_id', $user->id)->update(['admin_id' => null]);
+            } else {
+                // Dissocier l'ancien hôtel
+                Hotel::query()->where('admin_id', $user->id)->update(['admin_id' => null]);
+                // Assigner le nouveau
+                Hotel::query()->whereKey($validated['hotel_id'])->update(['admin_id' => $user->id]);
+            }
+        });
 
         return redirect()->route('admin.users.index')->with('success', 'Utilisateur mis à jour.');
     }
@@ -103,6 +141,7 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
         }
         $user->delete();
+
         return redirect()->route('admin.users.index')->with('success', 'Utilisateur supprimé.');
     }
 }

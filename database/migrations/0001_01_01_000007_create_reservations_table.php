@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('photo_carte')->nullable();
             $table->string('photo_visage')->nullable();
             $table->string('code_identite', 50);
-            $table->foreignId('chambre_id')->constrained('chambres')->cascadeOnDelete();
-            $table->date('date_reservation');
+$table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('chambre_id')->constrained('chambres')->cascadeOnDelete();            $table->date('date_reservation');
             $table->date('date_debut');
             $table->date('date_fin');
             $table->integer('quantite')->default(1);

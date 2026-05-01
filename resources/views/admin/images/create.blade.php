@@ -1,6 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Ajouter des images')
-
+@section('page_title', 'Ajouter une photo')
 @push('styles')
 <style>
     .upload-dropzone {

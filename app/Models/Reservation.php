@@ -4,11 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Reservation extends Model
 {
+    /** Acompte exigé à la réservation (% du montant total). */
+    public const DEPOSIT_PERCENT = 30;
+
     protected $fillable = [
+        'user_id',
         'nom_client',
         'prenom_client',
         'email_client',
@@ -39,9 +44,40 @@ class Reservation extends Model
         ];
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function chambre(): BelongsTo
     {
         return $this->belongsTo(Chambre::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function depositDueAmount(): float
+    {
+        $percent = (float) \App\Models\SiteSetting::get('resa_acompte_percent', self::DEPOSIT_PERCENT);
+        return round((float) $this->montant_total * $percent / 100, 2);
+    }
+
+    public function hasPaidDeposit(): bool
+    {
+        $required = $this->depositDueAmount();
+        if ($required <= 0) {
+            return true;
+        }
+
+        $paid = (float) $this->payments()
+            ->where('status', 'accepted')
+            ->where('payment_kind', Payment::KIND_DEPOSIT)
+            ->sum('amount');
+
+        return $paid + 0.005 >= $required;
     }
 
     public function getPhotosListAttribute(): array
@@ -49,6 +85,7 @@ class Reservation extends Model
         if (empty($this->photos)) {
             return [];
         }
+
         return array_filter(array_map('trim', explode(',', $this->photos)));
     }
 

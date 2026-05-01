@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Hotel;
 use App\Models\Reservation;
+use App\Models\TypeChambre;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,33 +17,67 @@ class WelcomeController extends Controller
             ->with(['typesChambre', 'avis'])
             ->withAvg('avis', 'note');
 
-        // Filter by city
+        $roomsWanted = max(1, min(20, (int) $request->input('rooms', 1)));
+        $adults = max(1, min(30, (int) $request->input('adults', 2)));
+        $children = max(0, min(20, (int) $request->input('children', 0)));
+        $guestsTotal = $adults + $children;
+        /** Capacité minimale par chambre pour accueillir le groupe (répartition équitable sur les chambres demandées) */
+        $minCapacityPerRoom = max(1, (int) ceil($guestsTotal / $roomsWanted));
+        /** Filtre « personnes par chambre » : valeurs issues des types_chambre.capacite */
+        if ($request->filled('min_capacity')) {
+            $filterCap = max(1, min(50, (int) $request->input('min_capacity')));
+            $minCapacityPerRoom = max($minCapacityPerRoom, $filterCap);
+        }
+        $stayFilterSummary = null;
+        $stayAvailabilityApplied = false;
+
+        // Disponibilité : N chambres libres sur la période + type assez grand pour le nombre de voyageurs
+        if ($request->filled('check_in') && $request->filled('check_out')) {
+            try {
+                $checkIn = Carbon::parse($request->input('check_in'))->startOfDay();
+                $checkOut = Carbon::parse($request->input('check_out'))->startOfDay();
+                if ($checkOut->gt($checkIn)) {
+                    $query->withRoomAvailableBetween(
+                        $checkIn->toDateString(),
+                        $checkOut->toDateString(),
+                        $roomsWanted,
+                        $minCapacityPerRoom
+                    );
+                    $stayAvailabilityApplied = true;
+                    $stayFilterSummary = [
+                        'check_in' => $checkIn->copy()->locale('fr'),
+                        'check_out' => $checkOut->copy()->locale('fr'),
+                        'rooms' => $roomsWanted,
+                        'adults' => $adults,
+                        'children' => $children,
+                        'guests_total' => $guestsTotal,
+                        'min_room_capacity' => $minCapacityPerRoom,
+                        'nights' => $checkIn->diffInDays($checkOut),
+                    ];
+                }
+            } catch (\Throwable) {
+                // dates invalides ignorées
+            }
+        }
+
+        // Filter by city (valeur exacte depuis la liste des villes en base)
         if ($request->filled('city')) {
-            $query->where('ville', 'like', '%' . $request->city . '%');
+            $query->where('ville', $request->input('city'));
         }
 
-        // Filter by min price (via typesChambre)
-        if ($request->filled('min_price')) {
-            $query->whereHas('typesChambre', fn ($q) => $q->where('prix_par_nuit', '>=', $request->min_price));
+        // Sans recherche par dates : filtrer les hôtels proposant au moins un type ≥ capacité choisie
+        if ($request->filled('min_capacity') && ! $stayAvailabilityApplied) {
+            $capFilter = max(1, min(50, (int) $request->input('min_capacity')));
+            $query->whereHas('typesChambre', fn ($q) => $q->where('capacite', '>=', $capFilter));
         }
 
-        // Filter by max price
-        if ($request->filled('max_price')) {
-            $query->whereHas('typesChambre', fn ($q) => $q->where('prix_par_nuit', '<=', $request->max_price));
+        // Filter by room type name (hôtels proposant au moins ce type de chambre)
+        if ($request->filled('room_type')) {
+            $typeName = (string) $request->input('room_type');
+            $query->whereHas('typesChambre', fn ($q) => $q->where('nom_type', $typeName));
         }
 
-        // Filter by min rating
-        if ($request->filled('min_rating')) {
-            $minRating = (float) $request->min_rating;
-            $query->having('avis_avg_note', '>=', $minRating);
-        }
-
-        // Sort
-        match ($request->get('sort', 'rating')) {
-            'price_asc' => $query->orderByRaw('(SELECT MIN(prix_par_nuit) FROM types_chambre WHERE types_chambre.hotel_id = hotels.id) ASC'),
-            'price_desc' => $query->orderByRaw('(SELECT MAX(prix_par_nuit) FROM types_chambre WHERE types_chambre.hotel_id = hotels.id) DESC'),
-            default => $query->orderByDesc('avis_avg_note'),
-        };
+        $query->orderBy('nom');
 
         $hotels = $query->paginate(12)->withQueryString();
 
@@ -72,6 +108,36 @@ class WelcomeController extends Controller
         // Fallback list: each hotel without a name match gets a different image (by id)
         $hotelImagesFallback = ['ayla.jpg', 'kempinski.jpeg', 'sheraton.jpeg', 'escale.jpg', 'waafi.jpg', 'gadileh.jpg', 'hotel europe.jpg', 'best western.jpeg'];
 
-        return view('welcome', compact('hotels', 'stats', 'hotelImageMap', 'hotelImagesFallback'));
+        $roomTypes = TypeChambre::query()
+            ->select('nom_type')
+            ->distinct()
+            ->orderBy('nom_type')
+            ->pluck('nom_type');
+
+        $cities = Hotel::query()
+            ->whereNotNull('ville')
+            ->where('ville', '!=', '')
+            ->distinct()
+            ->orderBy('ville')
+            ->pluck('ville')
+            ->values();
+
+        $roomCapacities = TypeChambre::query()
+            ->select('capacite')
+            ->distinct()
+            ->orderBy('capacite')
+            ->pluck('capacite')
+            ->values();
+
+        return view('welcome', compact(
+            'hotels',
+            'stats',
+            'hotelImageMap',
+            'hotelImagesFallback',
+            'stayFilterSummary',
+            'roomTypes',
+            'cities',
+            'roomCapacities'
+        ));
     }
 }

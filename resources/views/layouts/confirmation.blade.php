@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="site-theme-{{ $siteTheme ?? 'default' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Réservation confirmée') - DjibStay</title>
+    <title>@yield('title', 'Réservation confirmée') - {{ \App\Models\SiteSetting::get('app_name', 'DjibStay') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -112,6 +112,7 @@
         }
         .confirmation-btn-secondary:hover { background: #243145; }
     </style>
+    @include('partials.public-site-theme')
 </head>
 <body class="min-h-screen bg-gradient-to-b from-[#0B1220] via-[#0F172A] to-[#020617] text-white antialiased">
     {{-- En-tête professionnel : logo DjibStay (#febb02) --}}
@@ -122,7 +123,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="#febb02" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </div>
                 <div>
-                    <span class="brand-text">DjibStay</span>
+                    <span class="brand-text">{{ \App\Models\SiteSetting::get('app_name', 'DjibStay') }}</span>
                     <div class="brand-tagline">OFFICIAL HOTEL BOOKING PLATFORM IN DJIBOUTI</div>
                 </div>
             </a>

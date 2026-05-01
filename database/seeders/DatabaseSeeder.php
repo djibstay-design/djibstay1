@@ -10,19 +10,12 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Admin',
-            'prenom' => 'Super',
-            'email' => 'admin@example.com',
-            'role' => 'SUPER_ADMIN',
-            'password' => bcrypt('password'),
+        $this->call([
+            HotelSeeder::class,
+            AylaGrandHotelImagesSeeder::class,
+            AylaSuperiorRoomImagesSeeder::class,
         ]);
-
-        $this->call(HotelSeeder::class);
     }
 }

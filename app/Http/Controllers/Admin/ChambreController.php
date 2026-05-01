@@ -37,8 +37,8 @@ class ChambreController extends Controller
 
     public function create(Request $request): View
     {
-        $typesChambre = $this->getTypesChambreForUser($request);
-        return view('admin.chambres.create', compact('typesChambre'));
+        $types = $this->getTypesChambreForUser($request);
+        return view('admin.chambres.create', compact('types'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -81,8 +81,8 @@ class ChambreController extends Controller
     public function edit(Request $request, Chambre $chambre): View|RedirectResponse
     {
         $this->authorizeChambre($request, $chambre);
-        $typesChambre = $this->getTypesChambreForUser($request);
-        return view('admin.chambres.edit', compact('chambre', 'typesChambre'));
+        $types = $this->getTypesChambreForUser($request);
+        return view('admin.chambres.edit', compact('chambre', 'types'));
     }
 
     public function update(Request $request, Chambre $chambre): RedirectResponse

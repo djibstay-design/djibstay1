@@ -1,6 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Modifier l\'image')
-
+@section('page_title', 'Modifier une photo')
 @push('styles')
 <style>
     .current-preview {

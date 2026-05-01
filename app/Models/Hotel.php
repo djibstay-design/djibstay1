@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -45,5 +46,29 @@ class Hotel extends Model
     public function mainImage(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(HotelImage::class)->where('is_main', true)->latest();
+    }
+
+    /**
+     * Au moins $minRooms chambre(s) DISPONIBLE(s), type avec capacité >= $minTypeCapacite,
+     * sans réservation CONFIRMEE/EN_ATTENTE qui chevauche [checkIn, checkOut).
+     * (arrivée incluse, départ exclu — cohérent avec la recherche « nuits ».)
+     */
+    public function scopeWithRoomAvailableBetween(Builder $query, string $checkIn, string $checkOut, int $minRooms = 1, int $minTypeCapacite = 1): Builder
+    {
+        $minRooms = max(1, (int) $minRooms);
+        $minTypeCapacite = max(1, (int) $minTypeCapacite);
+
+        return $query->whereHas('typesChambre', function ($q) use ($checkIn, $checkOut, $minRooms, $minTypeCapacite) {
+            $q->where('capacite', '>=', $minTypeCapacite)
+              ->whereRaw('(
+                  (SELECT COUNT(*) FROM chambres WHERE chambres.type_id = types_chambre.id AND chambres.etat = ?) - 
+                  (SELECT COALESCE(SUM(quantite), 0) FROM reservations 
+                   INNER JOIN chambres ON chambres.id = reservations.chambre_id
+                   WHERE chambres.type_id = types_chambre.id 
+                   AND reservations.statut IN (?, ?)
+                   AND reservations.date_debut < ?
+                   AND reservations.date_fin > ?)
+              ) >= ?', ['DISPONIBLE', 'CONFIRMEE', 'EN_ATTENTE', $checkOut, $checkIn, $minRooms]);
+        });
     }
 }

@@ -1,6 +1,5 @@
 @extends('layouts.admin')
-
-@section('title', 'Modifier l\'hôtel')
+@section('page_title', 'Modifier un hôtel')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -30,6 +29,27 @@
         <input type="text" name="ville" id="ville" value="{{ old('ville', $hotel->ville) }}"
             class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">
     </div>
+    @if(auth()->user()->role === 'SUPER_ADMIN')
+        <div>
+            @if($admins->isEmpty())
+                <p class="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded px-3 py-2">Aucun compte « Admin » disponible. Créez un administrateur pour assigner cet hôtel.</p>
+            @else
+                <label for="admin_id" class="block text-sm font-medium mb-1">Administrateur de l'hôtel <span class="text-red-500">*</span></label>
+                <p class="text-xs text-slate-500 mb-1">Choisissez le compte qui gère cet hôtel.</p>
+                <select name="admin_id" id="admin_id" required
+                    class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded bg-white">
+                    @foreach($admins as $admin)
+                        <option value="{{ $admin->id }}" @selected((string) old('admin_id', $hotel->admin_id ?? $admins->first()->id) === (string) $admin->id)>
+                            {{ $admin->name }} {{ $admin->prenom }} ({{ $admin->email }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('admin_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            @endif
+        </div>
+    @endif
     <div>
         <label for="description" class="block text-sm font-medium mb-1">Description</label>
         <textarea name="description" id="description" rows="4" class="w-full px-4 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded">{{ old('description', $hotel->description) }}</textarea>

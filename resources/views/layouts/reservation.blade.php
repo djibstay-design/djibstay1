@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="site-theme-{{ $siteTheme ?? 'default' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,6 +43,7 @@
         .reservation-card .md\:grid-cols-3 { grid-template-columns: repeat(1, 1fr); }
         @media (min-width: 768px) { .reservation-card .md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); } }
     </style>
+    @include('partials.public-site-theme')
 </head>
 <body class="reservation-page">
     {{-- Navbar professionnelle --}}
