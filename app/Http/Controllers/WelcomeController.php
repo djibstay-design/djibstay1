@@ -7,12 +7,15 @@ use App\Models\Reservation;
 use App\Models\TypeChambre;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 
 class WelcomeController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|Response
     {
+        try {
         $query = Hotel::query()
             ->with(['typesChambre', 'avis'])
             ->withAvg('avis', 'note');
@@ -139,5 +142,28 @@ class WelcomeController extends Controller
             'cities',
             'roomCapacities'
         ));
+        } catch (\Throwable $e) {
+            Log::error('WelcomeController error', [
+                'message'   => $e->getMessage(),
+                'exception' => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ]);
+
+            return response(
+                implode("\n", [
+                    '=== WelcomeController Exception ===',
+                    'Type    : ' . get_class($e),
+                    'Message : ' . $e->getMessage(),
+                    'File    : ' . $e->getFile() . ':' . $e->getLine(),
+                    '',
+                    '--- Stack Trace ---',
+                    $e->getTraceAsString(),
+                ]),
+                500,
+                ['Content-Type' => 'text/plain']
+            );
+        }
     }
 }
