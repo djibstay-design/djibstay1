@@ -41,6 +41,16 @@ class LoginController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->is_suspended) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            throw ValidationException::withMessages([
+                'email' => 'Votre compte a été suspendu. Veuillez contacter le support.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         if ($user->role === 'SUPER_ADMIN') {

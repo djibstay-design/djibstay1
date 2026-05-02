@@ -62,12 +62,25 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
     .form-control-djib.is-error { border-color: #dc2626; }
     .field-error { color: #dc2626; font-size: 12px; margin-top: 5px; }
     .input-icon-wrap { position: relative; }
-    .input-icon-wrap .bi {
+    .input-icon-wrap > i:first-child {
         position: absolute; left: 13px; top: 50%;
         transform: translateY(-50%);
         color: #94a3b8; font-size: 16px;
     }
-    .input-icon-wrap .form-control-djib { padding-left: 38px; }
+    .input-icon-wrap .form-control-djib { padding-left: 38px; padding-right: 40px; }
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 5px;
+        transition: color .2s;
+        z-index: 10;
+    }
+    .password-toggle:hover { color: #0071c2; }
     .btn-login {
         background: linear-gradient(135deg, #003580, #0071c2);
         color: #fff; border: none; border-radius: 9px;
@@ -154,6 +167,7 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
                            class="form-control-djib {{ $errors->has('password') ? 'is-error' : '' }}"
                            placeholder="••••••••"
                            required autocomplete="current-password">
+                    <i class="bi bi-eye password-toggle" id="togglePassword"></i>
                 </div>
                 @error('password')
                     <div class="field-error">
@@ -187,4 +201,22 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function() {
+        // Toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        // Toggle the eye icon
+        this.classList.toggle('bi-eye');
+        this.classList.toggle('bi-eye-slash');
+    });
+});
+</script>
+@endpush
 @endsection

@@ -386,8 +386,11 @@
                         <a href="{{ route('admin.reservations.index') }}" class="qa-btn">
                             <div class="qa-icon" style="background:#dcfce7;">📋</div>Réservations
                         </a>
+                        <a href="{{ route('admin.clients.index') }}" class="qa-btn">
+                            <div class="qa-icon" style="background:#ede9fe;">👥</div>Clients
+                        </a>
                         <a href="{{ route('admin.users.index') }}" class="qa-btn">
-                            <div class="qa-icon" style="background:#ede9fe;">👥</div>Utilisateurs
+                            <div class="qa-icon" style="background:#f1f5f9;">🛡️</div>Admin/Staff
                         </a>
                         <a href="{{ route('admin.settings.edit') }}" class="qa-btn">
                             <div class="qa-icon" style="background:#fef3c7;">⚙️</div>Paramètres

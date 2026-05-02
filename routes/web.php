@@ -61,6 +61,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::middleware('superadmin')->resource('users', UserController::class)->parameters(['users' => 'user']);
     
+    // Gestion des Clients
+    Route::middleware('superadmin')->prefix('clients')->name('clients.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ClientController::class, 'index'])->name('index');
+        Route::get('/{client}', [App\Http\Controllers\Admin\ClientController::class, 'show'])->name('show');
+        Route::get('/{client}/modifier', [App\Http\Controllers\Admin\ClientController::class, 'edit'])->name('edit');
+        Route::put('/{client}', [App\Http\Controllers\Admin\ClientController::class, 'update'])->name('update');
+        Route::patch('/{client}/statut', [App\Http\Controllers\Admin\ClientController::class, 'toggleStatus'])->name('toggle-status');
+        Route::delete('/{client}', [App\Http\Controllers\Admin\ClientController::class, 'destroy'])->name('destroy');
+    });
+    
     // Types de paiement
     Route::resource('payment-methods', \App\Http\Controllers\Admin\PaymentMethodController::class)->except(['show']);
     Route::patch('payment-methods/{payment_method}/toggle', [\App\Http\Controllers\Admin\PaymentMethodController::class, 'toggleActive'])->name('payment-methods.toggle');

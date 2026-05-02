@@ -19,6 +19,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
+        'is_suspended',
         'fcm_token',
     ];
 

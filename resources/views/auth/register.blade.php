@@ -61,12 +61,25 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
     .form-control-djib.is-error { border-color: #dc2626; }
     .field-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
     .input-icon-wrap { position: relative; }
-    .input-icon-wrap .bi {
+    .input-icon-wrap > i:first-child {
         position: absolute; left: 13px; top: 50%;
         transform: translateY(-50%);
         color: #94a3b8; font-size: 15px;
     }
-    .input-icon-wrap .form-control-djib { padding-left: 38px; }
+    .input-icon-wrap .form-control-djib { padding-left: 38px; padding-right: 38px; }
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 15px;
+        padding: 5px;
+        transition: color .2s;
+        z-index: 10;
+    }
+    .password-toggle:hover { color: #0071c2; }
     .btn-register {
         background: linear-gradient(135deg, #003580, #0071c2);
         color: #fff; border: none; border-radius: 9px;
@@ -168,9 +181,10 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
                     <label class="form-label-djib">Mot de passe *</label>
                     <div class="input-icon-wrap">
                         <i class="bi bi-lock"></i>
-                        <input type="password" name="password"
+                        <input type="password" name="password" id="password"
                                class="form-control-djib {{ $errors->has('password') ? 'is-error' : '' }}"
                                placeholder="Min. 8 caractères" required>
+                        <i class="bi bi-eye password-toggle" onclick="togglePass('password', this)"></i>
                     </div>
                     @error('password')<div class="field-error">{{ $message }}</div>@enderror
                 </div>
@@ -179,9 +193,10 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
                     <label class="form-label-djib">Confirmer *</label>
                     <div class="input-icon-wrap">
                         <i class="bi bi-lock-fill"></i>
-                        <input type="password" name="password_confirmation"
+                        <input type="password" name="password_confirmation" id="password_confirmation"
                                class="form-control-djib"
                                placeholder="Répétez le mot de passe" required>
+                        <i class="bi bi-eye password-toggle" onclick="togglePass('password_confirmation', this)"></i>
                     </div>
                 </div>
 
@@ -221,4 +236,20 @@ background: url('https://images.unsplash.com/photo-1582719508461-905c673771fd?q=
 
     </div>
 </div>
+@push('scripts')
+<script>
+function togglePass(id, el) {
+    const input = document.getElementById(id);
+    if (input.type === 'password') {
+        input.type = 'text';
+        el.classList.remove('bi-eye');
+        el.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        el.classList.remove('bi-eye-slash');
+        el.classList.add('bi-eye');
+    }
+}
+</script>
+@endpush
 @endsection

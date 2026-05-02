@@ -354,6 +354,10 @@
            class="sidebar-link {{ request()->routeIs('admin.payment-methods.*') ? 'active' : '' }}">
             <i class="bi bi-credit-card"></i> Types de paiement
         </a>
+        <a href="{{ route('admin.clients.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+            <i class="bi bi-people-fill"></i> Clients
+        </a>
         <a href="{{ route('admin.users.index') }}"
            class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             <i class="bi bi-people"></i> Utilisateurs
